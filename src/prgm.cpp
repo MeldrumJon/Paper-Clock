@@ -209,17 +209,28 @@ void setup()
 
     display.init(115200);
     display.setRotation(1);
-    //display.setFont(&FreeSans24pt7b);
+    display.setFont(&FreeSans24pt7b);
     display.setTextColor(GxEPD_BLACK);
+    display.setFullWindow();
 
-    delay(1000);
-    helloWorldForDummies();
+    char text[] = "12:03";
 
-    delay(1000);
-    showPartialUpdate();
+    int16_t tbx, tby; 
+    uint16_t tbw, tbh; // boundary box window
+    display.getTextBounds(text, 0, 0, &tbx, &tby, &tbw, &tbh);
+    uint16_t x = ((display.width() - tbw) / 2) - tbx;
+    uint16_t y = ((display.height() - tbh) / 2) - tby;
 
-    delay(1000);
-    deepSleepTest();
+    display.firstPage();
+    do
+    {
+        display.fillScreen(GxEPD_WHITE); // set the background to white (fill the buffer with value for white)
+        display.setCursor(x, y); // set the postition to start printing text
+        display.print(text); // print some text
+    }
+    while (display.nextPage());
+
+    display.hibernate();
 }
 
 void loop()
