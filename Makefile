@@ -86,7 +86,7 @@ clean:
 
 .PHONY: program
 program: $(BUILD_DIR)/prgm.hex
-	avrdude -v -c usbtiny -p m328p -U flash:w:$(BUILD_DIR)/prgm.hex
+	avrdude -v -c usbtiny -B1 -p m328p -U flash:w:$(BUILD_DIR)/prgm.hex
 	
 .PHONY: fuses
 fuses:
