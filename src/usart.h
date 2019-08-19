@@ -1,5 +1,5 @@
-#ifndef USART_H
-#define USART_H
+#ifndef _USART_H_
+#define _USART_H_
 
 #include <stdio.h>
 

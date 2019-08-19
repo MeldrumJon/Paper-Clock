@@ -902,7 +902,9 @@ void GxEPD2_AVR_BW::_waitWhileBusy(const __FlashStringHelper* comment)
     delay(1);
     if (micros() - start > 10000000)
     {
+#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
       Serial.println(F("Busy Timeout!"));
+#endif
       break;
     }
   }

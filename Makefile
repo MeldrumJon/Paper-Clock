@@ -30,8 +30,8 @@ LIB_PARAMS := $(foreach d, $(LIB_PATHS), -I$d)
 # Compiler Settings
 #####
 FLAGS := -mmcu=atmega328p -D F_CPU=8000000UL -D ARDUINO=9999999 -I$(ARDUINO_DIR) -I$(SRC_DIR) $(LIB_PARAMS) -Wl,--gc-sections -ffunction-sections -fdata-sections
-CPP_FLAGS := -g -Wall -O1 $(FLAGS)
-C_FLAGS := -g -Wall -O1 $(FLAGS)
+CPP_FLAGS := -g -Wall -Os $(FLAGS)
+C_FLAGS := -g -Wall -Os $(FLAGS)
 
 #####
 # Build Program
@@ -42,6 +42,12 @@ $(BUILD_DIR)/prgm.hex: $(BUILD_DIR)/prgm.elf
 
 $(BUILD_DIR)/prgm.elf: $(SOURCES) $(BUILD_DIR)/lib.a $(BUILD_DIR)/core.a # core.a must be last
 	avr-gcc $(CPP_FLAGS) -o $@ $(SOURCES) $(BUILD_DIR)/lib.a -lm $(BUILD_DIR)/core.a -lm
+
+.PHONY:
+optimized:
+	mkdir -p build
+	avr-gcc $(CPP_FLAGS) -o $(BUILD_DIR)/prgm.elf $(SOURCES) $(LIB_SOURCES) $(CORE_SOURCES)
+	avr-objcopy -j .text -j .data -O ihex $(BUILD_DIR)/prgm.elf $(BUILD_DIR)/prgm.hex
 
 #####
 # Build Libraries
