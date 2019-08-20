@@ -28,7 +28,7 @@ LIB_PARAMS := $(foreach d, $(LIB_PATHS), -I$d)
 #####
 #-fno-threadsafe-statics 
 FLAGS = -mmcu=atmega328p 
-FLAGS += -DF_CPU=1000000UL -DARDUINO=10809
+FLAGS += -DF_CPU=8000000UL -DARDUINO=10809
 FLAGS += -DARDUINO_AVR_UNO -DARDUINO_ARCH_AVR
 FLAGS += -I$(ARDUINO_DIR) -I$(SRC_DIR) $(LIB_PARAMS)
 FLAGS += -Os -Wl,--gc-sections -ffunction-sections -fdata-sections

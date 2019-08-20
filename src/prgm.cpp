@@ -19,7 +19,7 @@ void setup()
     // Clock
     
     clock_init();
-    clock_set(19, 9, 25, 18, 45, 00);
+    clock_set(19, 9, 25, 00, 45, 00);
 
 
     // Display
@@ -27,11 +27,12 @@ void setup()
     disp_init();
     disp_clear();
 
-    setTime(clock_read()); // Use timeLib to set current time.
+    time_t t = clock_read();
 
-    printf("%d-%d-%d %d:%02d\r\n", year(), month(), day(), hour(), minute());
+    printf("%d-%d-%d %d:%02d\r\n", year(t), month(t), day(t), hour(t), 
+            minute(t));
     
-    disp_time();
+    disp_time(t);
 }
 
 void loop()

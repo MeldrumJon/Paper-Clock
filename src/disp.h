@@ -7,6 +7,6 @@
 void disp_init();
 void disp_clear();
 
-void disp_time();
+void disp_time(time_t t);
 
 #endif
