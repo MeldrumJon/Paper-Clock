@@ -1,5 +1,3 @@
-#define DISABLE_DIAGNOSTIC_OUTPUT
-
 #include "disp.h"
 #include <avr/pgmspace.h>
 #include <GxEPD2_AVR_BW.h>
@@ -34,14 +32,9 @@ void disp_clear() {
 }
 
 void disp_time() {
-    char* dayName = dayStr(day());
-    char* monthName = monthStr(month());
-
-    printf("Day: %s, mo: %s", dayName, monthName);
-
     // Date
-    sprintf(date_buf, "%s, %s %d, %d", dayName,
-            monthName, day(), year());
+    sprintf(date_buf, "%s, %s %d, %d", dayStr(weekday()),
+            monthStr(month()), day(), year());
 
     // Time
     sprintf(time_buf, "%2d:%02d", hourFormat12(), minute());
