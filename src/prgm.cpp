@@ -8,6 +8,8 @@
 #include "clock.h"
 #include "disp.h"
 
+static time_t t;
+
 void setup()
 {
     // Serial
@@ -19,30 +21,19 @@ void setup()
     // Clock
     
     clock_init();
-    clock_set(19, 9, 25, 00, 45, 00);
+    //clock_set(19, 8, 20, 17, 52, 00);
+    t = clock_read();
 
 
     // Display
 
     disp_init();
     disp_clear();
-
-    time_t t = clock_read();
-
-    printf("%d-%d-%d %d:%02d\r\n", year(t), month(t), day(t), hour(t), 
-            minute(t));
-    
-    disp_time(t);
 }
 
 void loop()
 {
-    //time_t time;
-    //clock_read(&time);
-
-    //char buf[20];
-    //format_time_str(&time, buf);
-    //printf("%s\r\n", buf);
-
-    //disp_partial_time(time.hour, time.minute);
+    time_t t = clock_read();
+    disp_update(t);
+    _delay_ms(5000);
 }

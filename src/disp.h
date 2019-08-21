@@ -2,11 +2,12 @@
 #define _DISP_H_
 
 #include <stdint.h>
+#include <TimeLib.h>
 #include "clock.h"
 
 void disp_init();
 void disp_clear();
 
-void disp_time(time_t t);
+void disp_update(time_t t, uint8_t refresh=0);
 
 #endif

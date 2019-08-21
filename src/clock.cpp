@@ -19,4 +19,5 @@ void clock_set(uint8_t year, uint8_t month, uint8_t day, uint8_t hour,
     RTC.set(makeTime(tmSet), CLOCK_ADDRESS); // set the clock
 }
 
-// clock_read defined in header
+// Defined in header:
+// time_t clock_read();
