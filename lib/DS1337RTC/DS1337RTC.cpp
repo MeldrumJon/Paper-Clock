@@ -130,7 +130,7 @@ void DS1337RTC::enableAlarm(int address){  //turn on the A1IE or A2IE bit
   if(address == ALARM1_ADDRESS){
     controlRegister |= 0x01;
   }else{
-    controlRegister |= 0x03;
+    controlRegister |= 0x02;
   }
   
   Wire.write(controlRegister);

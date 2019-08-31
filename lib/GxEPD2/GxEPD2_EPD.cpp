@@ -10,6 +10,7 @@
 // Library: https://github.com/ZinggJM/GxEPD2
 
 #include "GxEPD2_EPD.h"
+#include <util/delay.h>
 
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
@@ -74,19 +75,19 @@ void GxEPD2_EPD::_reset()
     {
       digitalWrite(_rst, LOW);
       pinMode(_rst, OUTPUT);
-      delay(20);
+      _delay_ms(20);
       pinMode(_rst, INPUT_PULLUP);
-      delay(200);
+      _delay_ms(200);
     }
     else
     {
       digitalWrite(_rst, HIGH);
       pinMode(_rst, OUTPUT);
-      delay(20);
+      _delay_ms(20);
       digitalWrite(_rst, LOW);
-      delay(20);
+      _delay_ms(20);
       digitalWrite(_rst, HIGH);
-      delay(200);
+      _delay_ms(200);
     }
     _hibernating = false;
   }
@@ -96,12 +97,12 @@ void GxEPD2_EPD::_waitWhileBusy(const char* comment, uint16_t busy_time)
 {
   if (_busy >= 0)
   {
-    delay(1); // add some margin to become active
+    _delay_ms(1); // add some margin to become active
     unsigned long start = micros();
     while (1)
     {
       if (digitalRead(_busy) != _busy_level) break;
-      delay(1);
+      _delay_ms(1);
       if (micros() - start > _busy_timeout)
       {
         Serial.println("Busy Timeout!");
@@ -122,7 +123,7 @@ void GxEPD2_EPD::_waitWhileBusy(const char* comment, uint16_t busy_time)
     }
     (void) start;
   }
-  else delay(busy_time);
+  //else _delay_ms(busy_time);
 }
 
 void GxEPD2_EPD::_writeCommand(uint8_t c)
