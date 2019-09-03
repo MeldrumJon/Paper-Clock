@@ -13,6 +13,7 @@ void clock_set(uint8_t year, uint8_t month, uint8_t day, uint8_t hour,
 
 // time_t clock_read();
 #define clock_read() RTC.get(CLOCK_ADDRESS)
+#define clock_intrpt_ack() RTC.resetAlarms();
 
 extern volatile uint_fast8_t clk_intrpt_flag;
 

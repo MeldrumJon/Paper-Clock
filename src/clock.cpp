@@ -52,9 +52,8 @@ void clock_intrpt_dis() {
 	sei();
 }
 
-void clock_intrpt_ack() {
-    RTC.resetAlarms();
-}
+// Defined in header:
+// void clock_intrpt_ack()
 
 void clock_set(uint8_t year, uint8_t month, uint8_t day, uint8_t hour, 
         uint8_t minute, uint8_t second) {

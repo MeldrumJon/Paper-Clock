@@ -26,10 +26,10 @@ void setup()
     //power_timer0_enable(); // delay()
 
     // Serial
-    //power_usart0_enable();
-    //usart_init();
- 	//stdout = &uart_stream;
- 	//printf("Hello world!\r\n");
+    power_usart0_enable();
+    usart_init();
+ 	stdout = &uart_stream;
+ 	printf("Hello world!\r\n");
 
     // Clock
     
@@ -39,10 +39,10 @@ void setup()
 
     // Display
     disp_init();
-    disp_clear();
 
     time_t t = clock_read();
     disp_update(t);
+    disp_off();
 }
 
 void loop()
@@ -54,8 +54,11 @@ void loop()
         clock_intrpt_ack();
 
         printf("Clock interrupt!\r\n");
+
         time_t t = clock_read();
+        disp_on();
         disp_update(t);
+        disp_off();
     }
     sei();
 
@@ -66,3 +69,4 @@ void loop()
   	sleep_cpu();
   	sleep_disable();
 }
+

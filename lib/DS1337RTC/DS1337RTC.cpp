@@ -65,9 +65,9 @@ bool DS1337RTC::readOSF() // Aquire data from the RTC chip in BCD format
   uint8_t status = bitRead(Wire.read(), 7);
   if(status==0x01){
     return(true);
-  }else if (status == 0x00){
+  }//else if (status == 0x00){
     return(false);
-  }
+  //}
 }
 
 void DS1337RTC::read( tmElements_t &tm, int address) // Aquire data from the RTC chip in BCD format
