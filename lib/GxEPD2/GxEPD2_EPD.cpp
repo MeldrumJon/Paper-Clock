@@ -11,6 +11,7 @@
 
 #include "GxEPD2_EPD.h"
 #include <util/delay.h>
+#include "timer.h"
 
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
@@ -75,19 +76,24 @@ void GxEPD2_EPD::_reset()
     {
       digitalWrite(_rst, LOW);
       pinMode(_rst, OUTPUT);
-      _delay_ms(20);
+      //_delay_ms(20);
+      timer_wait(TIMER_TICKS(20));
       pinMode(_rst, INPUT_PULLUP);
-      _delay_ms(200);
+      //_delay_ms(200);
+      timer_wait(TIMER_TICKS(200));
     }
     else
     {
       digitalWrite(_rst, HIGH);
       pinMode(_rst, OUTPUT);
-      _delay_ms(20);
+      //_delay_ms(20);
+      timer_wait(TIMER_TICKS(20));
       digitalWrite(_rst, LOW);
-      _delay_ms(20);
+      //_delay_ms(20);
+      timer_wait(TIMER_TICKS(20));
       digitalWrite(_rst, HIGH);
-      _delay_ms(200);
+      //_delay_ms(200);
+      timer_wait(TIMER_TICKS(200));
     }
     _hibernating = false;
   }
@@ -95,35 +101,11 @@ void GxEPD2_EPD::_reset()
 
 void GxEPD2_EPD::_waitWhileBusy(const char* comment, uint16_t busy_time)
 {
-  if (_busy >= 0)
+  _delay_ms(1); // add some margin to become active
+  while (digitalRead(_busy) == _busy_level);
   {
-    _delay_ms(1); // add some margin to become active
-    unsigned long start = micros();
-    while (1)
-    {
-      if (digitalRead(_busy) != _busy_level) break;
-      _delay_ms(1);
-      if (micros() - start > _busy_timeout)
-      {
-        Serial.println("Busy Timeout!");
-        break;
-      }
-    }
-    if (comment)
-    {
-#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
-      if (_diag_enabled)
-      {
-        unsigned long elapsed = micros() - start;
-        Serial.print(comment);
-        Serial.print(" : ");
-        Serial.println(elapsed);
-      }
-#endif
-    }
-    (void) start;
+    timer_wait(1);
   }
-  //else _delay_ms(busy_time);
 }
 
 void GxEPD2_EPD::_writeCommand(uint8_t c)

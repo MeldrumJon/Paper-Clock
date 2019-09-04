@@ -6,6 +6,10 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 #include "usart.h"
+#include "btn.h"
+#include "encoder.h"
+#include "timer.h"
+#include "btn.h"
 #include "clock.h"
 #include "disp.h"
 
@@ -31,6 +35,13 @@ void setup()
  	stdout = &uart_stream;
  	printf("Hello world!\r\n");
 
+    // IO
+    btn_enable();
+    encoder_enable();
+
+    // Timer
+    timer_enable();
+
     // Clock
     
     clock_init();
@@ -39,6 +50,7 @@ void setup()
 
     // Display
     disp_init();
+    disp_clear();
 
     time_t t = clock_read();
     disp_update(t);
@@ -47,6 +59,27 @@ void setup()
 
 void loop()
 {
+    cli();
+	if (btn_intrpt_flag) {
+		btn_intrpt_flag = 0;
+		sei();
+
+		//controller_wakeup();
+        printf("Button press!\r\n");
+        printf("Encoder: %d\r\n", encoder_delta());
+	}
+	sei();
+
+	cli();
+	if (timer_intrpt_flag) {
+		timer_intrpt_flag = 0;
+		sei();
+		
+		btn_tick();
+		//controller_tick();
+	}
+	sei();
+
     cli();
     if (clk_intrpt_flag) {
         clk_intrpt_flag = 0;
@@ -63,7 +96,12 @@ void loop()
     sei();
 
     cli();
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	//if (controller_isOff()) {
+		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	//}
+	//else {
+	//	set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+	//}
     sleep_enable();
   	sei();
   	sleep_cpu();

@@ -232,7 +232,7 @@ ISR(PCINT0_vect)
 #endif
 
 #if defined(PCINT1_vect)
-ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
+//ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
 #endif
 
 #if defined(PCINT2_vect)

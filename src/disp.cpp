@@ -1,5 +1,6 @@
 #include "disp.h"
 #include <avr/pgmspace.h>
+#define DISABLE_DIAGNOSTIC_OUTPUT
 #define ENABLE_GxEPD2_GFX 0
 #include <GxEPD2_BW.h>
 #include <U8g2_for_Adafruit_GFX.h>
@@ -105,6 +106,7 @@ static void _drawFull(uint8_t isPM) {
             u8g2Fonts.print(AM_STR);
         }
     } while (display.nextPage());
+    display.hibernate();
 }
 
 // Not currently used because of refresh on 00, 15, 30, 45
@@ -143,6 +145,7 @@ static void _drawFull(uint8_t isPM) {
 //            u8g2Fonts.print(AM_STR);
 //        }
 //    } while (display.nextPage());
+//    display.hibernate();
 //
 //}
 
@@ -161,6 +164,7 @@ static void _drawTime() {
         u8g2Fonts.setCursor(timeX, TIME_Y);
         u8g2Fonts.print(time_buf);
     } while (display.nextPage());
+    display.hibernate();
 }
 
 void disp_init() {
@@ -171,6 +175,14 @@ void disp_init() {
     display.init();
     display.setRotation(1);
     u8g2Fonts.begin(display);
+}
+
+void disp_clear() {
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+    } while(display.nextPage());
+    display.hibernate();
 }
 
 void disp_off() {
@@ -258,7 +270,6 @@ void disp_update(time_t t, uint8_t refresh /*=0*/) {
             _drawTime();
             break;
     }
-    display.hibernate();
 
     last_year = y;
     last_month = mo;

@@ -535,27 +535,27 @@ ISR(TIMER1_COMPA_vect)
 
 
 #ifdef USE_TIMER2
-ISR(TIMER2_COMPA_vect)
-{
-
-  if (timer2_toggle_count != 0)
-  {
-    // toggle the pin
-    *timer2_pin_port ^= timer2_pin_mask;
-
-    if (timer2_toggle_count > 0)
-      timer2_toggle_count--;
-  }
-  else
-  {
-    // need to call noTone() so that the tone_pins[] entry is reset, so the
-    // timer gets initialized next time we call tone().
-    // XXX: this assumes timer 2 is always the first one used.
-    noTone(tone_pins[0]);
-//    disableTimer(2);
-//    *timer2_pin_port &= ~(timer2_pin_mask);  // keep pin low after stop
-  }
-}
+//ISR(TIMER2_COMPA_vect)
+//{
+//
+//  if (timer2_toggle_count != 0)
+//  {
+//    // toggle the pin
+//    *timer2_pin_port ^= timer2_pin_mask;
+//
+//    if (timer2_toggle_count > 0)
+//      timer2_toggle_count--;
+//  }
+//  else
+//  {
+//    // need to call noTone() so that the tone_pins[] entry is reset, so the
+//    // timer gets initialized next time we call tone().
+//    // XXX: this assumes timer 2 is always the first one used.
+//    noTone(tone_pins[0]);
+////    disableTimer(2);
+////    *timer2_pin_port &= ~(timer2_pin_mask);  // keep pin low after stop
+//  }
+//}
 #endif
 
 
