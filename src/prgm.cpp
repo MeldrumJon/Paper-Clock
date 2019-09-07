@@ -5,13 +5,14 @@
 #include <avr/sleep.h>
 #include <Arduino.h>
 #include <TimeLib.h>
-#include "usart.h"
+//#include "usart.h"
 #include "btn.h"
 #include "encoder.h"
 #include "timer.h"
 #include "btn.h"
 #include "clock.h"
 #include "disp.h"
+#include "controller.h"
 
 void setup()
 {
@@ -30,10 +31,10 @@ void setup()
     //power_timer0_enable(); // delay()
 
     // Serial
-    power_usart0_enable();
-    usart_init();
- 	stdout = &uart_stream;
- 	printf("Hello world!\r\n");
+    //power_usart0_enable();
+    //usart_init();
+ 	//stdout = &uart_stream;
+ 	//printf("Hello world!\r\n");
 
     // IO
     btn_enable();
@@ -46,7 +47,6 @@ void setup()
     
     clock_init();
     clock_intrpt_en();
-    //clock_set(19, 8, 20, 17, 52, 00);
 
     // Display
     disp_init();
@@ -54,7 +54,6 @@ void setup()
 
     time_t t = clock_read();
     disp_update(t);
-    disp_off();
 }
 
 void loop()
@@ -64,9 +63,7 @@ void loop()
 		btn_intrpt_flag = 0;
 		sei();
 
-		//controller_wakeup();
-        printf("Button press!\r\n");
-        printf("Encoder: %d\r\n", encoder_delta());
+		controller_wakeup();
 	}
 	sei();
 
@@ -76,7 +73,7 @@ void loop()
 		sei();
 		
 		btn_tick();
-		//controller_tick();
+		controller_tick();
 	}
 	sei();
 
@@ -86,22 +83,22 @@ void loop()
         sei();
         clock_intrpt_ack();
 
-        printf("Clock interrupt!\r\n");
-
-        time_t t = clock_read();
-        disp_on();
-        disp_update(t);
-        disp_off();
+        if (controller_isOff()) {
+            time_t t = clock_read();
+            disp_on();
+            disp_update(t);
+            disp_off();
+        }
     }
     sei();
 
     cli();
-	//if (controller_isOff()) {
+	if (controller_isOff()) {
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-	//}
-	//else {
-	//	set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-	//}
+	}
+	else {
+		set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+	}
     sleep_enable();
   	sei();
   	sleep_cpu();

@@ -6,6 +6,7 @@
 #include <U8g2_for_Adafruit_GFX.h>
 #include <TimeLib.h>
 #include "clock.h"
+#include "setting.h"
 
 // Fonts
 #define DATE_FONT_HEIGHT 13
@@ -33,7 +34,17 @@
 #define TIME_AREA_X 0
 #define TIME_AREA_Y (TIME_Y - TIME_FONT_HEIGHT - 1)
 
+#define TIME24_AREA_WIDTH (DISP_WIDTH)
+
 #define DATE_Y (TIME_Y - TIME_FONT_HEIGHT - TIME_DATE_SEP)
+
+#define SETTING_Y ((DISP_HEIGHT+DATE_FONT_HEIGHT)/2)
+#define SETTING_NUM_X (DISP_WIDTH/2 + 4)
+
+#define SETTING_AREA_X (SETTING_NUM_X - 1)
+#define SETTING_AREA_Y ((DISP_HEIGHT-DATE_FONT_HEIGHT)/2 - 1)
+#define SETTING_AREA_WIDTH 40
+#define SETTING_AREA_HEIGHT (DATE_FONT_HEIGHT + 2)
 
 #define MAX_DISPAY_BUFFER_SIZE 800 
 #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPAY_BUFFER_SIZE / (EPD::WIDTH / 8))
@@ -68,6 +79,7 @@ static enum updateMode_t {
 } updateMode;
 
 static void _drawFull(uint8_t isPM) {
+    setting_meridiem_t meridiem = setting_getMeridiem();
     display.setFullWindow();
     display.firstPage();
     do {
@@ -88,22 +100,24 @@ static void _drawFull(uint8_t isPM) {
         u8g2Fonts.print(time_buf);
         
         // Draw Meridian
-        u8g2Fonts.setFont(u8g2_font_timR14);
-        u8g2Fonts.setCursor(MERIDIEM_CURSOR_X, MERIDIEM_CURSOR_Y);
-        if (isPM) {
-            display.writeFillRect(MERIDIEM_AREA_X, MERIDIEM_AREA_Y,
-                    MERIDIEM_AREA_WIDTH, MERIDIEM_AREA_HEIGHT,
-                    GxEPD_BLACK);
-            u8g2Fonts.setForegroundColor(GxEPD_WHITE);
-            u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
-            u8g2Fonts.print(PM_STR);
-        }
-        else {
-            display.writeFastHLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_WIDTH, GxEPD_BLACK);
-            display.writeFastVLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_HEIGHT, GxEPD_BLACK);
-            u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-            u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-            u8g2Fonts.print(AM_STR);
+        if (meridiem != MILITARY) {
+            u8g2Fonts.setFont(u8g2_font_timR14);
+            u8g2Fonts.setCursor(MERIDIEM_CURSOR_X, MERIDIEM_CURSOR_Y);
+            if (isPM) {
+                display.writeFillRect(MERIDIEM_AREA_X, MERIDIEM_AREA_Y,
+                        MERIDIEM_AREA_WIDTH, MERIDIEM_AREA_HEIGHT,
+                        GxEPD_BLACK);
+                u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+                u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
+                u8g2Fonts.print(PM_STR);
+            }
+            else {
+                display.writeFastHLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_WIDTH, GxEPD_BLACK);
+                display.writeFastVLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_HEIGHT, GxEPD_BLACK);
+                u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+                u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+                u8g2Fonts.print(AM_STR);
+            }
         }
     } while (display.nextPage());
     display.hibernate();
@@ -153,9 +167,15 @@ static void _drawTime() {
     u8g2Fonts.setForegroundColor(GxEPD_BLACK);
     u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
     u8g2Fonts.setFont(u8g2_font_droidserif_96pt);
-
-    display.setPartialWindow(TIME_AREA_X, TIME_AREA_Y,
-            TIME_AREA_WIDTH, TIME_AREA_HEIGHT);
+    
+    if (setting_getMeridiem() == MILITARY) {
+        display.setPartialWindow(TIME_AREA_X, TIME_AREA_Y,
+                TIME24_AREA_WIDTH, TIME_AREA_HEIGHT);
+    }
+    else {
+        display.setPartialWindow(TIME_AREA_X, TIME_AREA_Y,
+                TIME_AREA_WIDTH, TIME_AREA_HEIGHT);
+    }
     display.firstPage();
     do {
         // Background Color
@@ -221,12 +241,21 @@ void disp_update(time_t t, uint8_t refresh /*=0*/) {
     uint16_t y = year(t);
     uint8_t mo = month(t);
     uint8_t d = day(t);
-    uint8_t h = hourFormat12(t);
+    uint8_t h;
     uint8_t m = minute(t);
     uint8_t pm = isPM(t);
 
     uint16_t dateWidth;
     uint16_t timeWidth;
+
+    setting_meridiem_t meridiem = setting_getMeridiem();
+
+    if (meridiem == MILITARY) {
+        h = hour(t);
+    }
+    else {
+        h = hourFormat12(t);
+    }
 
     // Full update
     if ( (m != last_minute && (m % 15) == 0) || pm != last_isPM // Should do full update every few partials
@@ -251,14 +280,19 @@ void disp_update(time_t t, uint8_t refresh /*=0*/) {
             dateX = (DISP_WIDTH-dateWidth)/2;
         case TIME:
             // Update Time
-            sprintf(time_buf, "%d:%02d", h, m);
-            u8g2Fonts.setFont(u8g2_font_droidserif_96pt);
-            timeWidth = u8g2Fonts.getUTF8Width(time_buf);
-            if (h >= 10) { 
-                timeX = (TIME_AREA_WIDTH-timeWidth)/2 - 2;
+            if (meridiem != MILITARY) {
+                sprintf(time_buf, "%d:%02d", h, m);
             }
             else {
+                sprintf(time_buf, "%02d:%02d", h, m);
+            }
+            u8g2Fonts.setFont(u8g2_font_droidserif_96pt);
+            timeWidth = u8g2Fonts.getUTF8Width(time_buf);
+            if (h < 10 || meridiem == MILITARY) {
                 timeX = (DISP_WIDTH-timeWidth)/2;
+            }
+            else { 
+                timeX = (TIME_AREA_WIDTH-timeWidth)/2 - 2;
             }
     }
 
@@ -278,4 +312,112 @@ void disp_update(time_t t, uint8_t refresh /*=0*/) {
     last_minute = m;
     last_isPM = pm;
     return;
+}
+
+
+void disp_setting(setting_t setting) {
+    switch (setting) {
+        case YEAR:
+            sprintf(date_buf, "Year:");
+            break;
+        case MONTH:
+            sprintf(date_buf, "Month:");
+            break;
+        case DAY:
+            sprintf(date_buf, "Day:");
+            break;
+        case MERIDIEM:
+            sprintf(date_buf, "Meridiem:");
+            break;
+        case HOUR:
+            sprintf(date_buf, "Hours:");
+            break;
+        case MINUTE:
+            sprintf(date_buf, "Minute:");
+            break;
+    }
+    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+    u8g2Fonts.setFont(u8g2_font_timR14);
+    uint16_t width = u8g2Fonts.getUTF8Width(date_buf);
+    uint16_t settingX = (DISP_WIDTH/2-width);
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        // Background Color
+        display.fillScreen(GxEPD_WHITE);
+        // Draw Time String
+        u8g2Fonts.setCursor(settingX, SETTING_Y);
+        u8g2Fonts.print(date_buf);
+    } while (display.nextPage());
+}
+
+void disp_showSet(uint16_t num) {
+    sprintf(time_buf, "%d", num);
+    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+    u8g2Fonts.setFont(u8g2_font_timR14);
+    display.setPartialWindow(SETTING_AREA_X, SETTING_AREA_Y,
+            SETTING_AREA_WIDTH, SETTING_AREA_HEIGHT);
+    display.firstPage();
+    do {
+        // Background Color
+        display.fillScreen(GxEPD_WHITE);
+        // Draw Time String
+        u8g2Fonts.setCursor(SETTING_NUM_X, SETTING_Y);
+        u8g2Fonts.print(time_buf);
+    } while (display.nextPage());
+    return;
+}
+
+void disp_showMeridiem() {
+    setting_meridiem_t meridiem = setting_getMeridiem();
+    switch (meridiem) {
+        case AM:
+            sprintf(time_buf, "AM");
+            break;
+        case PM:
+            sprintf(time_buf, "PM");
+            break;
+        case MILITARY:
+            sprintf(time_buf, "24");
+            break;
+    }
+    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+    u8g2Fonts.setFont(u8g2_font_timR14);
+    display.setPartialWindow(SETTING_AREA_X, SETTING_AREA_Y,
+            SETTING_AREA_WIDTH, SETTING_AREA_HEIGHT);
+    display.firstPage();
+    do {
+        // Background Color
+        display.fillScreen(GxEPD_WHITE);
+        // Draw Time String
+        u8g2Fonts.setCursor(SETTING_NUM_X, SETTING_Y);
+        u8g2Fonts.print(time_buf);
+    } while (display.nextPage());
+    return;
+}
+
+void disp_confirm(uint8_t isSetting) {
+    if (isSetting) {
+        sprintf(date_buf, "Setting...");
+    }
+    else {
+        sprintf(date_buf, "Press to set.");
+    }
+    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+    u8g2Fonts.setFont(u8g2_font_timR14);
+    uint16_t width = u8g2Fonts.getUTF8Width(date_buf);
+    uint16_t settingX = (DISP_WIDTH-width)/2;
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        // Background Color
+        display.fillScreen(GxEPD_WHITE);
+        // Draw Time String
+        u8g2Fonts.setCursor(settingX, SETTING_Y);
+        u8g2Fonts.print(date_buf);
+    } while (display.nextPage());
 }

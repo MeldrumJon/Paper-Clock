@@ -17,4 +17,6 @@ void clock_set(uint8_t year, uint8_t month, uint8_t day, uint8_t hour,
 
 extern volatile uint_fast8_t clk_intrpt_flag;
 
+uint8_t clock_12to24(uint8_t hfmt12, uint8_t ispm);
+
 #endif

@@ -69,3 +69,18 @@ void clock_set(uint8_t year, uint8_t month, uint8_t day, uint8_t hour,
 
 // Defined in header:
 // time_t clock_read();
+
+uint8_t clock_12to24(uint8_t hfmt12, uint8_t ispm) {
+    if (!ispm && hfmt12 == 12) {
+        return 0;
+    }
+    else if (!ispm) {
+        return hfmt12;
+    }
+    else if (ispm && hfmt12 == 12) {
+        return hfmt12;
+    }
+    else {
+        return hfmt12+12;
+    }
+}
