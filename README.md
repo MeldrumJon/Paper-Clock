@@ -5,3 +5,4 @@ RTC with ePaper display.
 
 Pinout:
 BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
+
