@@ -2,6 +2,8 @@
 
 Minimalistic clock with an e-ink display.
 
+![Photo of Waveshare ePaper module showing the clock](../assets/Image.jpg)
+
 ## Parts
 
 - [Waveshare 2.9" ePaper Module](https://www.waveshare.com/wiki/2.9inch_e-Paper_Module)
@@ -19,5 +21,27 @@ Minimalistic clock with an e-ink display.
 ## Tools
 
 - AVR ISP Programmer or [arduinoISP](https://www.arduino.cc/en/tutorial/arduinoISP)
+- USB to TTY serial adapter for debugging
 
+## Schematic
+
+![Paper Clock Schematic](../assets/Schematic.png?raw=true)
+
+## Setup
+
+1. Install the AVR-GCC toolchain (and update your `PATH` variable, if necessary)
+2. Connect the AVR ISP programmer pins to the SPI pins on the ATMega328p.
+3. Connect the ATMega328p's TX pin to RX on the TTY serial adapter.
+4. Update the `program` and `fuses` recipes in the makefile to use your AVR 
+ISP programmer.
+5. Update the `serial` recipe in the makefile to use your USB to TTY serial 
+adapter.
+6. Run `make fuses` to set the fuses on the ATMega328p.
+    - If the ATMega328p was previously set to use an external clock or crystal 
+    oscillator, an external clock or crystal oscillator will be needed to set 
+    the fuses.
+
+## Programming
+
+Run `make program` to program the ATMega328p.
 
