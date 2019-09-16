@@ -1,47 +1,81 @@
-$fa = 0.2;
-$fs = 0.2;
+include <lib/nutsnbolts/cyl_head_bolt.scad>;
+use <display.scad>;
+use <pcb.scad>;
 
-module pcb() {
-    width = 28.956;
-    height = 36.576;
-    
-    color ("purple") {
-        translate([width/2, height/2, 1.6]) { 
-            import("res/paperClockPCB.stl", convexity=10);
+$fa = 0.4;
+$fs = 0.4;
+
+module cube_rounded(size, radius) {
+    width = size[0];
+    height = size[1];
+    depth = size[2];
+    for (x=[radius, width-radius]) {
+        for (y=[radius, height-radius]) {
+            translate([x, y, 0]) cylinder(h=depth, r=radius);
         }
     }
-
-    usb_width = 2.9;
-    usb_height = 8;
-    usb_depth = 7.1;
-    
-    usb_center_x = 2.286;
-    usb_center_y = 9.144;
-
-    translate([usb_center_x-usb_width/2, usb_center_y-usb_height/2, -usb_depth])
-        color("gray") cube([usb_width, usb_height, usb_depth]);
+    translate([radius, 0, 0]) cube([width-radius*2, height, depth]);
+    translate([0, radius, 0]) cube([width, height-radius*2, depth]);
 }
 
-module display() {
-    // PCB
-    width = 89.50;
-    height = 38.00;
-    depth = 1.6;
-    
-    // Screws
-    radius = 1.5;
-    dist = 2.5;
+radius = 5;
+width = 130;
+height = 55;
+depth = height - radius;
 
-    difference() {
-        color("blue") cube([width, height, depth]);
-        for (x=[0+dist, width-dist]) {
-            for (y=[0+dist, height-dist]) {
-                translate([x, y, -0.1]) cylinder(h=depth+0.2, r=radius);
+wall = 2;
+
+screw_diam = 4;
+screw_len = 20;
+leg_size = screw_diam*3;
+//screw("M4x20");
+
+module chassis_screwholes() {
+    for (x=[leg_size/2, width-leg_size/2]) {
+        for (y=[leg_size/2, height-leg_size/2]) {
+            translate([x, y, depth/2+screw_len-0.1]) hole_through("M4", l=20);
+        }
+    }
+}
+
+module chassis_screwlegs(clearance=0) {
+    r = 3;
+    for (x=[-clearance, width-leg_size+clearance]) {
+        for (y=[-clearance, height-leg_size+clearance]) {
+            translate([x, y, depth/2]) {
+                cube_rounded([leg_size+2*clearance, leg_size+2*clearance, depth/2], radius);
             }
         }
     }
+    for (x=[-clearance+leg_size-r, width+clearance-leg_size+r]) {
+        for (y=[-clearance+leg_size-r, height+clearance-leg_size+r]) {
+            translate([x, y, depth/2]) cylinder(h=depth/2, r=r);
+        }
+    }
 }
 
-//color("purple", 0.5) pcb();
-//pcb();
-display();
+
+// Front
+module front() {
+    difference() {
+        union() {
+            translate([0, 0, depth-wall]) cube_rounded([width, height, wall], radius);
+            chassis_screwlegs();
+        }
+        chassis_screwholes();
+    }
+}
+
+module back() {
+    difference() {
+        cube_rounded([width, height, depth], radius);
+        translate([-0.01, -0.01, depth-wall+0.01]) cube_rounded([width+0.02, height+0.02, wall+0.02], radius);
+        chassis_screwlegs(clearance=0.2);
+        chassis_screwholes();
+    }
+}
+front();
+//back();
+
+//display();
+//translate([0, 0, -20]) pcb();
