@@ -1,27 +1,30 @@
 $fa = 0.2;
 $fs = 0.2;
 
+/*
+    Screw size: M3 or M2.8 (try M3 first - longer lengths)
+*/
 module display() {
     // PCB
     width = 89.50;
     height = 38.00;
-    depth = 1.6;
+    depth = 1.65;
     
     // Screws
     radius = 1.5;
     dist = 2.5;
 
     // "Paper"
-    paper_depth = 3 - depth;
+    paper_depth = 2.9 - depth;
     paper_start_x = 5;
     paper_end_x = width - 5;
     paper_width = paper_end_x - paper_start_x;
     paper_height = height;
 
     // Display
-    display_start_x = 8;
+    display_start_x = 8.5;
     display_end_x = width - 14;
-    display_start_y = 4;
+    display_start_y = 4.5;
     display_end_y = height - 4.5;
     display_width = display_end_x - display_start_x;
     display_height = display_end_y - display_start_y;
