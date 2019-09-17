@@ -1,73 +1,91 @@
 include <lib/nutsnbolts/cyl_head_bolt.scad>;
-use <display.scad>;
+include <display.scad>;
 use <pcb.scad>;
 use <mylib.scad>;
 
 $fa = 0.4;
 $fs = 0.4;
 
+// Case
+
 wall = 2;
-guide_width = wall/2;
-guide_height = 2;
-guide_clearance = 0.4;
 
-roundness = 5;
-width = 130;
-height = 55;
-depth = height - roundness;
+outer_roundness = 5;
+outer_width = 130;
+outer_height = 55;
+outer_depth = outer_height - outer_roundness;
 
-// M4x20 screws for enclosure
+clearance = 0.6;
+
+inner_offset = (wall+clearance);
+
+inner_width = outer_width - 2*inner_offset;
+inner_height = outer_height - 2*inner_offset;
+inner_depth = outer_depth - inner_offset;
+inner_roundness = outer_roundness - inner_offset;
+
+// M4x20 screws for enclosure: screw("M4x20");
 screw_diam = 4;
 screw_len = 20;
-leg_size = screw_diam*3+screw_diam/2;
-screw_place = screw_diam/2+screw_diam*3/2;
-//screw("M4x20");
+
+// Front
+module front() {
+    // Face
+    difference() {
+        translate ([0, 0, outer_depth-wall])
+            rounded_cube([outer_width, outer_height, wall], roundness=outer_roundness);
+        translate ([outer_width/2 - display_screen_width/2, outer_height/2 - display_screen_height/2, outer_depth-wall-0.1])
+            cube([display_screen_width, display_screen_height, wall+0.2]);
+    }
+    // Walls
+    rounded_cube_pipe([outer_width, outer_height, outer_depth], wall_thickness=wall, roundness=outer_roundness);
+
+    // Screw columns
+    screw_width = screw_diam*3;
+    screw_bot_clearance = wall+0.1;
+    screw_height = outer_depth-screw_bot_clearance;
+    screw_r1 = 0.6;
+    screw_r2 = 1.8;
+    screw_offset = inner_offset + wall+clearance;
+    translate([screw_offset, screw_offset, screw_bot_clearance]) 
+        rotate([0, 0, 0])  screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    translate([outer_width-screw_offset, screw_offset, screw_bot_clearance]) 
+        rotate([0, 0, 90])  screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    translate([outer_width-screw_offset, outer_height-screw_offset, screw_bot_clearance])
+        rotate([0, 0, 180]) screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    translate([screw_offset, outer_height-screw_offset, screw_bot_clearance])
+        rotate([0, 0, 270]) screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+}
+
+module back() {
+    translate ([inner_offset, inner_offset, 0]) {
+        // Face
+        rounded_cube([inner_width, inner_height, wall], roundness=inner_roundness);
+        // Walls
+        rounded_cube_pipe([inner_width, inner_height, inner_depth], wall_thickness=wall, roundness=inner_roundness);
+    }
+}
+
+//translate([0, 0, outer_depth*2])
+    front();
+back();
+color("orange") case_screws();
+
+//display();
+//translate([0, 0, -20]) pcb();
+
+module case_screws() {
+    offset = inner_offset + wall+clearance + screw_diam*3/2;
+
+    for (x=[offset, outer_width-offset], y=[offset, outer_height-offset]) {
+        translate([x, y, -0.1])
+            rotate([180,0,0]) hole_threaded("M4", 20, thread="no");
+    }
+}
 
 module screw_leg(w, h, r1, r2) {
     translate([r1, r1, 0]) cylinder(h=h, r=r1);
     translate([w-r2,w-r2,0]) cylinder(h=h, r=r2);
-    translate([roundness, 0, 0]) cube([w-r1, w-r2, h]);
-    translate([0, roundness, 0]) cube([w-r2, w-r1, h]);
+    translate([r1, 0, 0]) cube([w-r1, w-r2, h]);
+    translate([0, r1, 0]) cube([w-r2, w-r1, h]);
 }
-
-// Front
-module front() {
-    translate([0, 0, depth-wall])
-        rounded_cube([width, height, wall], roundness);
-    translate([0, 0, depth/2])
-        rounded_cube_pipe([width, height, depth/2], roundness=roundness, wall_thickness=wall);
-
-    guide_width = guide_width - guide_clearance;
-    padding = wall - guide_width;
-    translate([padding, padding, depth/2-guide_height])
-        rounded_cube_pipe([width-padding*2, height-padding*2, depth/2+guide_height], roundness=roundness, wall_thickness=guide_width);
-
-    translate([0, 0, depth/2]) 
-        rotate([0, 0, 0])  screw_leg(leg_size, depth/2, roundness, 3);
-    translate([width, 0, depth/2]) 
-        rotate([0, 0, 90])  screw_leg(leg_size, depth/2, roundness, 3);
-    translate([width, height, depth/2])
-        rotate([0, 0, 180]) screw_leg(leg_size, depth/2, roundness, 3);
-    translate([0, height, depth/2])
-        rotate([0, 0, 270]) screw_leg(leg_size, depth/2, roundness, 3);
-}
-
-module back() {
-    rounded_cube_pipe([width, height, depth/2-guide_height], roundness=roundness, wall_thickness=wall);
-    rounded_cube_pipe([width, height, depth/2], roundness=roundness, wall_thickness=guide_width);
-}
-
-difference() {
-    union() {
-        translate([0, 0, 5]) color("orange") front();
-        back();
-    }
-    for (x=[screw_place, width-screw_place]) {
-        for (y=[screw_place, height-screw_place]) {
-            translate([x, y, depth/2+screw_len-0.2]) hole_through("M4", l=20);
-        }
-    }
-}
-
-//display();
-//translate([0, 0, -20]) pcb();
