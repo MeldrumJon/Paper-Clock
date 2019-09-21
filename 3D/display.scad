@@ -2,10 +2,14 @@ $fa = 0.2;
 $fs = 0.2;
 
 display_screw_name = "M3";
+display_screw_diam = 3;
+display_screw_dist = 2.5;
 
 display_width = 89.50;
 display_height = 38.00;
 display_depth = 2.9;
+
+display_pcb_depth = 1.65;
 
 display_screen_start_x = 8.5;
 display_screen_end_x = display_width - 14;
@@ -21,11 +25,11 @@ module display() {
     // PCB
     width = display_width;
     height = display_height;
-    depth = 1.65;
+    depth = display_pcb_depth;
     
     // Screws
-    radius = 1.5;
-    dist = 2.5;
+    radius = display_screw_diam/2;
+    dist = display_screw_dist;
 
     // "Paper"
     paper_depth = display_depth - depth;

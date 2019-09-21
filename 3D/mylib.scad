@@ -63,4 +63,3 @@ module pipe(h, r, wall_thickness, center=false) {
         translate(move) cylinder(h=h+0.2, r=r-wall_thickness, center=center);
     }
 }
-
