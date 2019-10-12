@@ -1,3 +1,6 @@
+include <lib/BOSL/constants.scad>
+use <lib/BOSL/shapes.scad>
+
 module rounded_cube(size, roundness, center=false) {
     width = size[0];
     height = size[1];
@@ -56,10 +59,19 @@ module rounded_cube_pipe(size, wall_thickness, roundness, center=false) {
     }
 }
 
-module pipe(h, r, wall_thickness, center=false) {
+module pipe(h, r, wall_thickness) {
     move = center ? [0, 0, 0] : [0, 0, -0.1];
     difference() {
         cylinder(h=h, r=r, center=center);
         translate(move) cylinder(h=h+0.2, r=r-wall_thickness, center=center);
     }
 }
+
+module tapered_insert_hole(h, d, taper_h, taper_deg=12) {
+    taper_diam = d + 2*taper_h*tan(taper_deg);
+    union() {
+        translate([0, 0, -h]) cylinder(h=h, d=d);
+        translate([0, 0, -taper_h/2]) cyl(h=taper_h, d1=d, d2=taper_diam);
+    }
+}
+

@@ -6,19 +6,19 @@ include <pcb.scad>;
 include <encoder.scad>;
 use <mylib.scad>;
 
-$fa = 0.1;
-$fs = 0.1;
+$fa = 0.4;
+$fs = 0.4;
 
 // Case
 
 wall = 2;
 
 outer_roundness = 5;
-outer_width = 140;
-outer_height = 55;
-outer_depth = outer_height - outer_roundness;
+outer_width = 132;
+outer_height = 53;
+outer_depth = 32;
 
-clearance = 0.6;
+clearance = 0.5;
 
 inner_offset = (wall+clearance);
 
@@ -43,7 +43,7 @@ pcb_x = display_column_inner_end_x-pcb_height-clearance;
 pcb_y = (outer_height - pcb_width)/2;
 
 pcb_lift = pcb_depth+pcb_usb_depth+clearance-wall;
-pcb_lift_diam = 4;
+pcb_lift_diam = 2;
 pcb_lift_offset = 5;
 pcb_lift_y = pcb_y + 19.5;
 
@@ -55,11 +55,11 @@ encoder_radius = 5;
 
 encoder_outer_width = encoder_area_width - 2;
 encoder_outer_height = encoder_area_width - 2;
-encoder_outer_depth = encoder_knob_length+encoder_wall;
+encoder_outer_depth = 2;
 
 encoder_inner_width = encoder_outer_width - 2*encoder_wall;
 encoder_inner_height = encoder_outer_height - 2*encoder_wall;
-encoder_inner_depth = encoder_outer_depth - 2*encoder_wall;
+encoder_inner_depth = encoder_outer_depth - encoder_wall;
 
 encoder_x = display_column_inner_start_x + encoder_area_width/2;
 encoder_y = outer_height/2;
@@ -80,7 +80,7 @@ module front() {
             prismoid([small_width, small_height], [big_width, big_height], wall+0.2);
     }
     // Walls
-    *rounded_cube_pipe([outer_width, outer_height, outer_depth], wall_thickness=wall, roundness=outer_roundness);
+    rounded_cube_pipe([outer_width, outer_height, outer_depth], wall_thickness=wall, roundness=outer_roundness);
 
     // Screw columns
     screw_width = screw_diam*3;
@@ -89,14 +89,24 @@ module front() {
     screw_r1 = 0.6;
     screw_r2 = 1.8;
     screw_offset = inner_offset + wall+clearance;
-    translate([screw_offset, screw_offset, screw_bot_clearance]) 
-        rotate([0, 0, 0])  screw_leg(screw_width, screw_height, screw_r1, screw_r2);
-    translate([outer_width-screw_offset, screw_offset, screw_bot_clearance]) 
-        rotate([0, 0, 90])  screw_leg(screw_width, screw_height, screw_r1, screw_r2);
-    translate([outer_width-screw_offset, outer_height-screw_offset, screw_bot_clearance])
-        rotate([0, 0, 180]) screw_leg(screw_width, screw_height, screw_r1, screw_r2);
-    translate([screw_offset, outer_height-screw_offset, screw_bot_clearance])
-        rotate([0, 0, 270]) screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    //translate([screw_offset, screw_offset, screw_bot_clearance]) 
+    //    rotate([0, 0, 0])  screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    //translate([outer_width-screw_offset, screw_offset, screw_bot_clearance]) 
+    //    rotate([0, 0, 90])  screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    //translate([outer_width-screw_offset, outer_height-screw_offset, screw_bot_clearance])
+    //    rotate([0, 0, 180]) screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    //translate([screw_offset, outer_height-screw_offset, screw_bot_clearance])
+    //    rotate([0, 0, 270]) screw_leg(screw_width, screw_height, screw_r1, screw_r2);
+    
+    pillar_offset = inner_offset + wall + clearance + screw_diam*3/2;
+    translate([pillar_offset, pillar_offset, screw_bot_clearance])
+    	cylinder(d=screw_diam+6, h=screw_height);
+    translate([outer_width-pillar_offset, pillar_offset, screw_bot_clearance])
+    	cylinder(d=screw_diam+6, h=screw_height);
+    translate([outer_width-pillar_offset, outer_height-pillar_offset, screw_bot_clearance])
+    	cylinder(d=screw_diam+6, h=screw_height);
+    translate([pillar_offset, outer_height-pillar_offset, screw_bot_clearance])
+    	cylinder(d=screw_diam+6, h=screw_height);
 }
 
 module back() {
@@ -106,23 +116,23 @@ module back() {
                 // Face
                 rounded_cube([inner_width, inner_height, wall], roundness=inner_roundness);
                 // Walls
-                *rounded_cube_pipe([inner_width, inner_height, inner_depth], wall_thickness=wall, roundness=inner_roundness);
+                rounded_cube_pipe([inner_width, inner_height, wall+1.2], wall_thickness=wall, roundness=inner_roundness);
             }
 
             for (x=[display_x+display_screw_dist, display_x+display_width-display_screw_dist],
                  y=[display_y+display_screw_dist, display_y+display_height-display_screw_dist]) {
                 translate([x, y, 0])
-                    cylinder(d=3*display_screw_diam, h=display_z);
+                    cylinder(d=display_screw_diam+5, h=display_z);
             }
 
-            translate([encoder_x, encoder_y, encoder_outer_depth/2])
-                rounded_cube([encoder_outer_width, encoder_outer_height, encoder_outer_depth],
-                roundness=encoder_radius+encoder_wall, center=true);
+//            translate([encoder_x, encoder_y, encoder_outer_depth/2])
+//                rounded_cube([encoder_outer_width, encoder_outer_height, encoder_outer_depth],
+//                roundness=encoder_radius+encoder_wall, center=true);
 
             y = pcb_y + pcb_screw_offset;
             for (x=[pcb_x + pcb_screw_offset, pcb_x + pcb_height - pcb_screw_offset]) {
                 translate([x, y, 0]) {
-                    cylinder(d=pcb_screw_diam*3, h=pcb_usb_depth);
+                    cylinder(d=pcb_screw_diam+4, h=pcb_usb_depth);
                 }
             }
 
@@ -131,12 +141,12 @@ module back() {
             translate([pcb_x+pcb_height-pcb_lift_offset, pcb_lift_y, 0])
                 cylinder(d=pcb_lift_diam, h=pcb_usb_depth);
         }
-        translate([encoder_x, encoder_y, encoder_inner_depth/2-0.1])
-            rounded_cube([encoder_inner_width, encoder_inner_height, encoder_inner_depth+0.2], roundness=encoder_radius, center=true);
-        translate([encoder_x, encoder_y, 0])
-            cylinder(d=encoder_pole_diam, h=encoder_outer_depth+0.1);
-        translate([pcb_x+pcb_height-pcb_usb_y, pcb_y+pcb_usb_x, 0])
-            cube([pcb_usb_height+2, pcb_usb_width+2, outer_depth/2], center=true);
+//        translate([encoder_x, encoder_y, encoder_inner_depth/2-0.1])
+//            rounded_cube([encoder_inner_width, encoder_inner_height, encoder_inner_depth+0.2], roundness=encoder_radius, center=true);
+        translate([encoder_x, encoder_y, -0.1])
+            cylinder(d=encoder_pole_diam, h=encoder_outer_depth+0.2);
+        translate([pcb_x+pcb_height-pcb_usb_y-0.6, pcb_y+pcb_usb_x, 0])
+            cube([pcb_usb_height+2, pcb_usb_width+1, outer_depth/2], center=true);
     }
 }
 
@@ -145,7 +155,10 @@ module screws_case() {
 
     for (x=[offset, outer_width-offset], y=[offset, outer_height-offset]) {
         translate([x, y, -0.1])
-            rotate([180,0,0]) hole_threaded("M4", 20, thread="no");
+            rotate([180,0,0]) hole_threaded("M4", outer_depth+0.1-wall, thread="no"); // M4x12 screws
+        translate([x, y, wall+0.01]) {
+            rotate([180,0,0]) tapered_insert_hole(h=10*1.5, d=6*0.85, taper_h=1); // M4x10x6 insert TODO: lower diam
+        }
     }
 }
 
@@ -153,7 +166,10 @@ module screws_display() {
     for (x=[display_x+display_screw_dist, display_x+display_width-display_screw_dist],
          y=[display_y+display_screw_dist, display_y+display_height-display_screw_dist]) {
         translate([x, y, display_z+display_pcb_depth])
-            hole_threaded(display_screw_name, 25, thread="no");
+            hole_threaded(display_screw_name, display_z+display_pcb_depth-wall, thread="no"); // M3x12 (or a little shorter)
+        translate([x,y, display_z+0.1]) {
+            tapered_insert_hole(h=10*1.5, d=5*0.85, taper_h=1); // M3x10x5 insert TODO: lower diam
+        }
     }
 }
 
@@ -161,7 +177,10 @@ module screws_pcb() {
     y = pcb_y + pcb_screw_offset;
     for (x=[pcb_x + pcb_screw_offset, pcb_x + pcb_height - pcb_screw_offset]) {
         translate([x, y, pcb_depth+pcb_usb_depth]) {
-            hole_threaded(pcb_screw_name, 6, thread="no");
+            hole_threaded(pcb_screw_name, 6, thread="no"); // M2x6
+        }
+        translate([x, y, pcb_usb_depth+0.1]) {
+            tapered_insert_hole(h=pcb_usb_depth+0.1-wall, d=3.5*0.85, taper_h=1); // M2x4x3.5 insert TODO: lower diam
         }
     }
 }
@@ -175,23 +194,30 @@ module screw_leg(w, h, r1, r2) {
 
 // Case
 
-//translate([0, 0, outer_depth*2])
-    front();
-back();
-color("orange") {
+// Front
+
+rotate([180, 0, 0]) translate([0, 0, -outer_depth]) difference()
+{
+	front();
     screws_case();
     screws_display();
     screws_pcb();
 }
 
+translate([0, -1.5, 0]) difference()
+{
+	back();
+	screws_case();
+    screws_display();
+    screws_pcb();
+}
+
 // Components
-translate([display_x, display_y, display_z])
-    display();
-translate([pcb_x, pcb_y, pcb_depth+pcb_usb_depth+clearance-wall]) 
-    translate([pcb_height, 0, 0]) 
-        rotate([0, 0, 90])
-        pcb();
-translate([encoder_x, encoder_y, encoder_pcb_depth+encoder_box_depth+encoder_outer_depth])
-    rotate([180, 0, 90]) encoder();
-
-
+//translate([display_x, display_y, display_z])
+//    display();
+//translate([pcb_x, pcb_y, pcb_depth+pcb_usb_depth+clearance-wall]) 
+//    translate([pcb_height, 0, 0]) 
+//        rotate([0, 0, 90])
+//        pcb();
+//translate([encoder_x, encoder_y, encoder_pcb_depth+encoder_box_depth+encoder_outer_depth])
+//    rotate([180, 0, 90]) encoder();
