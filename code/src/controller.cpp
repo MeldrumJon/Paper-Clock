@@ -16,12 +16,13 @@ static enum controller_st_t {
 	INIT_ST,
 	OFF_ST,
 	WAKE_UP_ST,
+    WHICH_ST,
 	SET_MERIDIEM_ST,
 	SET_HOUR_ST,
 	SET_MINUTE_ST,
-	SET_MONTH_ST,
-	SET_DAY_ST,
-	SET_YEAR_ST,
+	DATE_SET_YEAR_ST,
+	DATE_SET_MONTH_ST,
+	DATE_SET_DAY_ST,
     CONFIRM_ST
 } currentState = INIT_ST;
 
@@ -67,6 +68,9 @@ void debugStatePrint(void) {
 			case WAKE_UP_ST:
 				printf("WAKE_UP_ST\r\n");
 				break;
+            case WHICH_ST:
+                printf("WHICH_ST\r\n");
+                break;
 			case SET_MERIDIEM_ST:
 				printf("SET_MERIDIEM_ST\r\n");
 				break;
@@ -76,14 +80,14 @@ void debugStatePrint(void) {
 			case SET_MINUTE_ST:
 				printf("SET_MINUTE_ST\r\n");
 				break;
-			case SET_MONTH_ST:
-				printf("SET_MONTH_ST\r\n");
+			case DATE_SET_YEAR_ST:
+				printf("DATE_SET_YEAR_ST\r\n");
 				break;
-			case SET_DAY_ST:
-				printf("SET_DAY_ST\r\n");
+			case DATE_SET_MONTH_ST:
+				printf("DATE_SET_MONTH_ST\r\n");
 				break;
-			case SET_YEAR_ST:
-				printf("SET_YEAR_ST\r\n");
+			case DATE_SET_DAY_ST:
+				printf("DATE_SET_DAY_ST\r\n");
 				break;
     		case CONFIRM_ST:
 				printf("CONFIRM_ST\r\n");
@@ -110,6 +114,7 @@ uint_fast8_t controller_isOff(void) {
 }
 
 void controller_tick(void) {
+    static uint8_t d_o_t;
     static int16_t y;
     static int8_t mo;
     static int8_t d;
@@ -128,6 +133,9 @@ void controller_tick(void) {
 		case WAKE_UP_ST:
             ++timeout_cnt;
 			break;
+        case WHICH_ST:
+            ++timeout_cnt;
+            break;
 		case SET_MERIDIEM_ST:
             ++timeout_cnt;
 			break;
@@ -137,13 +145,13 @@ void controller_tick(void) {
 		case SET_MINUTE_ST:
             ++timeout_cnt;
 			break;
-		case SET_MONTH_ST:
+		case DATE_SET_YEAR_ST:
             ++timeout_cnt;
 			break;
-		case SET_DAY_ST:
+		case DATE_SET_MONTH_ST:
             ++timeout_cnt;
 			break;
-		case SET_YEAR_ST:
+		case DATE_SET_DAY_ST:
             ++timeout_cnt;
 			break;
 		case CONFIRM_ST:
@@ -165,6 +173,7 @@ void controller_tick(void) {
 		case WAKE_UP_ST:
 			if (btn_press_flag) {
 				powerup();
+                d_o_t = 0;
                 time_t t = clock_read();
                 y = year(t);
                 mo = month(t);
@@ -174,65 +183,84 @@ void controller_tick(void) {
                 pm = isPM(t);
 
 				timeout_cnt = 0;
-                disp_setting(YEAR);
-                disp_showSet(y);
-                currentState = SET_YEAR_ST;
+                disp_dateOrTime(d_o_t, 1);
+                currentState = WHICH_ST;
 			}
 			else if (timeout_cnt >= WAKE_TIMEOUT) {
 				currentState = OFF_ST;
 			}
 			break;
-		case SET_YEAR_ST:
+        case WHICH_ST:
+            if (delta & 0x1) { // Odd number of turns
+                d_o_t = (!d_o_t); // Toggle date or time
+                disp_dateOrTime(d_o_t, 0);
+                timeout_cnt = 0;
+            }
+            else if (btn_press_flag) {
+                timeout_cnt = 0;
+                if (d_o_t) {
+                    disp_setDate(y, mo, d, DRAW_YEAR, 0, 1);
+                    currentState = DATE_SET_YEAR_ST;
+                }
+                else {
+                    // TODO: show next setting
+                    // TODO: move to next state
+                }
+            }
+            else if (timeout_cnt >= INPUT_TIMEOUT) {
+                powerdown();
+                currentState = OFF_ST;
+            }
+            break;
+		case DATE_SET_YEAR_ST:
             if (delta) {
                 y += delta;
                 if (y < 2000) { y = 2000; }
                 if (y > 2100) { y = 2100; }
-                disp_showSet(y);
+                disp_setDate(y, mo, d, DRAW_YEAR, 1, 0);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setting(MONTH);
-                disp_showSet(mo);
-                currentState = SET_MONTH_ST;
+                disp_setDate(y, mo, d, DRAW_MONTH, 0, 0);
+                currentState = DATE_SET_MONTH_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
                 powerdown();
 				currentState = OFF_ST;
 			}
 			break;
-		case SET_MONTH_ST:
+		case DATE_SET_MONTH_ST:
             if (delta) {
                 mo += delta;
                 if (mo < 1) { mo = 1; }
                 if (mo > 12) { mo = 12; }
-                disp_showSet(mo);
+                disp_setDate(y, mo, d, DRAW_MONTH, 1, 0);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setting(DAY);
-                disp_showSet(d);
-                currentState = SET_DAY_ST;
+                disp_setDate(y, mo, d, DRAW_DAY, 0, 0);
+                currentState = DATE_SET_DAY_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
                 powerdown();
 				currentState = OFF_ST;
 			}
 			break;
-		case SET_DAY_ST:
+		case DATE_SET_DAY_ST:
             if (delta) {
                 d += delta;
                 if (d > 31) { d = 31; }
                 if (d < 1) { d = 1; }
-                disp_showSet(d);
+                disp_setDate(y, mo, d, DRAW_DAY, 1, 0);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setting(MERIDIEM);
-                disp_showMeridiem();
-                currentState = SET_MERIDIEM_ST;
+                disp_setDate(y, mo, d, DRAW_NONE, 0, 0);
+                disp_confirm(0);
+                currentState = CONFIRM_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
                 powerdown();
@@ -311,6 +339,11 @@ void controller_tick(void) {
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
+                if (d_o_t) { // Date
+                    
+                }
+                else {
+                }
                 disp_confirm(1);
                 uint8_t y2k_year = y - 2000;
                 setting_meridiem_t meridiem = setting_getMeridiem();

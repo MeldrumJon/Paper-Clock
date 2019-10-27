@@ -85,9 +85,7 @@ void loop()
 
         if (controller_isOff()) {
             time_t t = clock_read();
-            disp_on();
             disp_update(t);
-            disp_off();
         }
     }
     sei();

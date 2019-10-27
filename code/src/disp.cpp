@@ -15,8 +15,8 @@
 // Display
 #define DISP_WIDTH 296
 #define DISP_HEIGHT 128
-#define MERIDIEM_WIDTH 25
-#define MERIDIEM_HEIGHT MERIDIEM_FONT_HEIGHT
+#define MERIDIEM_WIDTH 25+1
+#define MERIDIEM_HEIGHT MERIDIEM_FONT_HEIGHT+1
 #define MERIDIEM_PADDING 7
 #define MERIDIEM_CURSOR_X (DISP_WIDTH - (MERIDIEM_WIDTH + MERIDIEM_PADDING))
 #define MERIDIEM_CURSOR_Y (DISP_HEIGHT - MERIDIEM_PADDING)
@@ -28,26 +28,32 @@
 #define TIME_DATE_SEP 20
 #define TIME_DATE_HEIGHT (TIME_FONT_HEIGHT + DATE_FONT_HEIGHT + TIME_DATE_SEP)
 
-#define TIME_Y ((DISP_HEIGHT + TIME_DATE_HEIGHT)/2)
-#define TIME_AREA_WIDTH (DISP_WIDTH - MERIDIEM_AREA_WIDTH)
+#define TIME_Y ((DISP_HEIGHT + TIME_DATE_HEIGHT)/2-1)
+#define TIME_AREA_WIDTH (DISP_WIDTH - (MERIDIEM_AREA_WIDTH+1))
 #define TIME_AREA_HEIGHT ((DISP_HEIGHT - TIME_Y) + TIME_FONT_HEIGHT + 2)
 #define TIME_AREA_X 0
 #define TIME_AREA_Y (TIME_Y - TIME_FONT_HEIGHT - 1)
 
 #define TIME24_AREA_WIDTH (DISP_WIDTH)
 
-#define DATE_Y (TIME_Y - TIME_FONT_HEIGHT - TIME_DATE_SEP)
+#define DATE_Y (TIME_Y - TIME_FONT_HEIGHT - TIME_DATE_SEP+1)
+
 
 #define SETTING_Y ((DISP_HEIGHT+DATE_FONT_HEIGHT)/2)
+#define SETTING_AREA_Y ((DISP_HEIGHT-DATE_FONT_HEIGHT)/2 - 1)
+#define SETTING_AREA_HEIGHT (DATE_FONT_HEIGHT + 2)
+
+#define SETTING_CONFIRM_AREA_Y (SETTING_AREA_Y+SETTING_AREA_HEIGHT+16)
+#define SETTING_CONFIRM_AREA_HEIGHT (DATE_FONT_HEIGHT + 2)
+#define SETTING_CONFIRM_Y (SETTING_CONFIRM_AREA_Y+DATE_FONT_HEIGHT-1)
+
+#define SETTING_DATE_TIME_SEP 56
+#define SETTING_DATE_SEP 12
+
 #define SETTING_NUM_X (DISP_WIDTH/2 + 4)
 
 #define SETTING_AREA_X (SETTING_NUM_X - 1)
-#define SETTING_AREA_Y ((DISP_HEIGHT-DATE_FONT_HEIGHT)/2 - 1)
 #define SETTING_AREA_WIDTH 40
-#define SETTING_AREA_HEIGHT (DATE_FONT_HEIGHT + 2)
-
-#define MAX_DISPAY_BUFFER_SIZE 800 
-#define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPAY_BUFFER_SIZE / (EPD::WIDTH / 8))
 
 #define BMASK_CLK (0x1<<5)
 #define BMASK_MOSI (0x1<<3)
@@ -57,14 +63,17 @@
 #define DMASK_BUSY (0x1<<7)
 #define DMASK_PWR (0x1<<5)
 
+// Display
+#define MAX_DISPAY_BUFFER_SIZE 800 
+#define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPAY_BUFFER_SIZE / (EPD::WIDTH / 8))
 GxEPD2_BW<GxEPD2_290, MAX_HEIGHT(GxEPD2_290)> display(GxEPD2_290(/*CS=10*/ SS, /*DC=*/ 8, /*RST=*/ 9, /*BUSY=*/ 7));
-//GxEPD2_AVR_BW display(GxEPD2::GDEH029A1, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9, /*BUSY=*/ 7);
 
-U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 // Fonts
+U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 extern const uint8_t u8g2_font_droidserif_96pt[] U8G2_FONT_SECTION("u8g2_font_droidserif_96pt");
 extern const uint8_t u8g2_font_timR14[] U8G2_FONT_SECTION("u8g2_font_timR14");
 
+// Variables
 static const char AM_STR[] = "AM";
 static const char PM_STR[] = "PM";
 static char date_buf[31]; // Longest date string: "Wednesday, September 20, 2019" = 30 chars + \0
@@ -72,6 +81,11 @@ static char time_buf[6]; // Longest time "12:00" = 4 chars + \0
 
 static uint8_t dateX;
 static uint8_t timeX;
+
+// Strings
+static const char DATE_SET_STR[] = "DATE";
+static const char TIME_SET_STR[] = "TIME";
+static const char DATE_SEP_STR[] = "-";
 
 static enum updateMode_t {
     FULL,
@@ -123,46 +137,6 @@ static void _drawFull(uint8_t isPM) {
     display.hibernate();
 }
 
-// Not currently used because of refresh on 00, 15, 30, 45
-//static void _drawTimeMeridiem(uint8_t isPM) {
-//    display.setPartialWindow(0, TIME_AREA_Y,
-//            DISP_WIDTH, TIME_AREA_HEIGHT);
-//    display.firstPage();
-//    do {
-//        // Background Color
-//        display.fillScreen(GxEPD_WHITE);
-//
-//        u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-//        u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-//   
-//        // Draw time string
-//        u8g2Fonts.setFont(u8g2_font_droidserif_96pt);
-//        u8g2Fonts.setCursor(timeX, TIME_Y);
-//        u8g2Fonts.print(time_buf);
-//        
-//        // Draw Meridian
-//        u8g2Fonts.setFont(u8g2_font_timR14);
-//        u8g2Fonts.setCursor(MERIDIEM_CURSOR_X, MERIDIEM_CURSOR_Y);
-//        if (isPM) {
-//            display.writeFillRect(MERIDIEM_AREA_X, MERIDIEM_AREA_Y,
-//                    MERIDIEM_AREA_WIDTH, MERIDIEM_AREA_HEIGHT,
-//                    GxEPD_BLACK);
-//            u8g2Fonts.setForegroundColor(GxEPD_WHITE);
-//            u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
-//            u8g2Fonts.print(PM_STR);
-//        }
-//        else {
-//            display.writeFastHLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_WIDTH, GxEPD_BLACK);
-//            display.writeFastVLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_HEIGHT, GxEPD_BLACK);
-//            u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-//            u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-//            u8g2Fonts.print(AM_STR);
-//        }
-//    } while (display.nextPage());
-//    display.hibernate();
-//
-//}
-
 static void _drawTime() {
     u8g2Fonts.setForegroundColor(GxEPD_BLACK);
     u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
@@ -188,10 +162,6 @@ static void _drawTime() {
 }
 
 void disp_init() {
-    //DDRD |= (DMASK_PWR);
-    //PORTD |= (DMASK_PWR); // Enable display power.
-    //// TODO: do we need a delay? how long?
-    //_delay_ms(1000);
     display.init();
     display.setRotation(1);
     u8g2Fonts.begin(display);
@@ -203,31 +173,6 @@ void disp_clear() {
         display.fillScreen(GxEPD_WHITE);
     } while(display.nextPage());
     display.hibernate();
-}
-
-void disp_off() {
-//    // Make display pins input, without pullup (high-impedance)
-//    DDRB &= ~(BMASK_DC | BMASK_RST | BMASK_SS | BMASK_MOSI | BMASK_CLK);
-//    PORTB &= ~(BMASK_DC | BMASK_RST | BMASK_SS | BMASK_MOSI | BMASK_CLK); 
-//    // DMASK_BUSY already set to input without pullup
-//
-//    // DMASK_PWR stays output
-//    PORTD &= ~(DMASK_PWR);
-}
-
-void disp_on() {
-//    // DMASK_PWR stays output
-//    PORTD |= (DMASK_PWR);
-//
-//    // DMASK_BUSY already set to input without pullup
-//    // DC, RST, SS, MOSI, CLK should be outputs
-//    DDRD |= (BMASK_DC | BMASK_RST | BMASK_SS | BMASK_MOSI | BMASK_CLK);
-//    // DC, RST, SS should be high, others should already be low after disp_off
-//    PORTB |= (BMASK_DC | BMASK_RST | BMASK_SS);
-//
-//    // TODO: do we need a delay? how long?
-//    _delay_ms(1000);
-//    display.reinit();
 }
 
 void disp_update(time_t t, uint8_t refresh /*=0*/) {
@@ -314,6 +259,182 @@ void disp_update(time_t t, uint8_t refresh /*=0*/) {
     return;
 }
 
+void disp_dateOrTime(uint8_t dateTime_n, uint8_t firstRun) {
+    u8g2Fonts.setFont(u8g2_font_timR14);
+    uint16_t date_width = u8g2Fonts.getUTF8Width(DATE_SET_STR);
+    uint16_t time_width = u8g2Fonts.getUTF8Width(TIME_SET_STR); 
+    uint16_t width = date_width + time_width + SETTING_DATE_TIME_SEP;
+    uint16_t date_x = (DISP_WIDTH-width)/2;
+    uint16_t time_x = date_x+date_width+SETTING_DATE_TIME_SEP;
+    if (firstRun) {
+        display.setFullWindow();
+    }
+    else {
+        display.setPartialWindow(date_x-1, SETTING_AREA_Y,
+                width+2, SETTING_AREA_HEIGHT);
+    }
+
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+        if (dateTime_n) {
+            display.writeFillRect(date_x-1, SETTING_AREA_Y,
+                    date_width+2, SETTING_AREA_HEIGHT,
+                    GxEPD_BLACK);
+            u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+            u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
+            u8g2Fonts.setCursor(date_x, SETTING_Y);
+            u8g2Fonts.print(DATE_SET_STR); 
+
+            u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+            u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+            u8g2Fonts.setCursor(time_x, SETTING_Y);
+            u8g2Fonts.print(TIME_SET_STR); 
+        }
+        else {
+            u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+            u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+            u8g2Fonts.setCursor(date_x, SETTING_Y);
+            u8g2Fonts.print(DATE_SET_STR); 
+
+            display.writeFillRect(time_x-1, SETTING_AREA_Y,
+                    time_width+2, SETTING_AREA_HEIGHT,
+                    GxEPD_BLACK);
+            u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+            u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
+            u8g2Fonts.setCursor(time_x, SETTING_Y);
+            u8g2Fonts.print(TIME_SET_STR); 
+        }
+    } while (display.nextPage());
+}
+
+void disp_setDate(uint16_t yr, uint8_t m, uint8_t d, drawDate_t select_ymdn, 
+        uint8_t update, uint8_t firstRun) {
+    u8g2Fonts.setFont(u8g2_font_timR14);
+    static char yr_str[5];
+    static char m_str[3];
+    static char d_str[3];
+    sprintf(yr_str, "%04d", yr);
+    sprintf(m_str, "%02d", m);
+    sprintf(d_str, "%02d", d);
+    uint16_t sep_width = u8g2Fonts.getUTF8Width(DATE_SEP_STR);
+    uint16_t yr_width = u8g2Fonts.getUTF8Width(yr_str);
+    uint16_t m_width = u8g2Fonts.getUTF8Width(m_str);
+    uint16_t d_width = u8g2Fonts.getUTF8Width(d_str);
+    uint16_t width = sep_width*2 + yr_width + m_width + d_width + SETTING_DATE_SEP*4;
+    uint16_t yr_x = (DISP_WIDTH-width)/2;
+    uint16_t sep1_x = yr_x + yr_width + SETTING_DATE_SEP;
+    uint16_t m_x = sep1_x + sep_width + SETTING_DATE_SEP;
+    uint16_t sep2_x = m_x + m_width + SETTING_DATE_SEP;
+    uint16_t d_x = sep2_x + sep_width + SETTING_DATE_SEP;
+    if (firstRun) {
+        display.setFullWindow();
+    }
+    else {
+        if (update) {
+            switch(select_ymdn) {
+                case DRAW_YEAR:
+                    display.setPartialWindow(yr_x-1, SETTING_AREA_Y,
+                            yr_width+2, SETTING_AREA_HEIGHT);
+                    break;
+                case DRAW_MONTH:
+                    display.setPartialWindow(m_x-1, SETTING_AREA_Y,
+                            m_width+2, SETTING_AREA_HEIGHT);
+                    break;
+                case DRAW_DAY:
+                    display.setPartialWindow(d_x-1, SETTING_AREA_Y,
+                            d_width+2, SETTING_AREA_HEIGHT);
+                    break;
+                deafult:
+                    display.setPartialWindow(yr_x-1, SETTING_AREA_Y,
+                            width+2, SETTING_AREA_HEIGHT);
+                    break;
+            }
+        }
+        else {
+            display.setPartialWindow(yr_x-1, SETTING_AREA_Y,
+                    width+2, SETTING_AREA_HEIGHT);
+        }
+    }
+    display.firstPage();
+    do {
+        if (!update) {
+            display.fillScreen(GxEPD_WHITE);
+            u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+            u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+        }
+        switch(select_ymdn) {
+            case DRAW_YEAR:
+                if (!update) {
+                    u8g2Fonts.setCursor(m_x, SETTING_Y);
+                    u8g2Fonts.print(m_str); 
+                    u8g2Fonts.setCursor(d_x, SETTING_Y);
+                    u8g2Fonts.print(d_str); 
+                    display.writeFillRect(yr_x-1, SETTING_AREA_Y,
+                            yr_width+2, SETTING_AREA_HEIGHT,
+                            GxEPD_BLACK);
+                }
+                else {
+                    display.fillScreen(GxEPD_BLACK);
+                }
+                u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+                u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
+                u8g2Fonts.setCursor(yr_x, SETTING_Y);
+                u8g2Fonts.print(yr_str); 
+
+                break;
+            case DRAW_MONTH:
+                if (!update) {
+                    u8g2Fonts.setCursor(yr_x, SETTING_Y);
+                    u8g2Fonts.print(yr_str); 
+                    u8g2Fonts.setCursor(d_x, SETTING_Y);
+                    u8g2Fonts.print(d_str); 
+                    display.writeFillRect(m_x-1, SETTING_AREA_Y,
+                            m_width+2, SETTING_AREA_HEIGHT,
+                            GxEPD_BLACK);
+                }
+                else {
+                    display.fillScreen(GxEPD_BLACK);
+                }
+                u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+                u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
+                u8g2Fonts.setCursor(m_x, SETTING_Y);
+                u8g2Fonts.print(m_str); 
+
+                break;
+            case DRAW_DAY:
+                if (!update) {
+                    u8g2Fonts.setCursor(yr_x, SETTING_Y);
+                    u8g2Fonts.print(yr_str); 
+                    u8g2Fonts.setCursor(m_x, SETTING_Y);
+                    u8g2Fonts.print(m_str); 
+                    display.writeFillRect(d_x-1, SETTING_AREA_Y,
+                            d_width+2, SETTING_AREA_HEIGHT,
+                            GxEPD_BLACK);
+                }
+                else {
+                    display.fillScreen(GxEPD_BLACK);
+                }
+                u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+                u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
+                u8g2Fonts.setCursor(d_x, SETTING_Y);
+                u8g2Fonts.print(d_str); 
+
+                break;
+            default:
+                display.fillScreen(GxEPD_WHITE);
+                u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+                u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+                u8g2Fonts.setCursor(yr_x, SETTING_Y);
+                u8g2Fonts.print(yr_str); 
+                u8g2Fonts.setCursor(m_x, SETTING_Y);
+                u8g2Fonts.print(m_str); 
+                u8g2Fonts.setCursor(d_x, SETTING_Y);
+                u8g2Fonts.print(d_str); 
+                break;
+        }
+    } while (display.nextPage());
+}
 
 void disp_setting(setting_t setting) {
     switch (setting) {
@@ -400,24 +521,30 @@ void disp_showMeridiem() {
 }
 
 void disp_confirm(uint8_t isSetting) {
+    u8g2Fonts.setFont(u8g2_font_timR14);
     if (isSetting) {
         sprintf(date_buf, "Setting...");
+        u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+        u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
     }
     else {
-        sprintf(date_buf, "Press to set.");
+        sprintf(date_buf, "Set");
+        u8g2Fonts.setForegroundColor(GxEPD_WHITE);
+        u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
     }
-    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-    u8g2Fonts.setFont(u8g2_font_timR14);
     uint16_t width = u8g2Fonts.getUTF8Width(date_buf);
-    uint16_t settingX = (DISP_WIDTH-width)/2;
-    display.setFullWindow();
+    uint16_t x = (DISP_WIDTH-width)/2;
+    display.setPartialWindow(x-1, SETTING_CONFIRM_AREA_Y,
+            width+2, SETTING_CONFIRM_AREA_HEIGHT);
     display.firstPage();
     do {
-        // Background Color
-        display.fillScreen(GxEPD_WHITE);
-        // Draw Time String
-        u8g2Fonts.setCursor(settingX, SETTING_Y);
+        if (isSetting) {
+            display.fillScreen(GxEPD_WHITE);
+        }
+        else {
+            display.fillScreen(GxEPD_BLACK);
+        }
+        u8g2Fonts.setCursor(x, SETTING_CONFIRM_Y);
         u8g2Fonts.print(date_buf);
     } while (display.nextPage());
 }
