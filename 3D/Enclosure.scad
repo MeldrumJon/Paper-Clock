@@ -157,7 +157,7 @@ module screws_case() {
         translate([x, y, -0.1])
             rotate([180,0,0]) hole_threaded("M4", outer_depth+0.1-wall, thread="no"); // M4x12 screws
         translate([x, y, wall+0.01]) {
-            rotate([180,0,0]) tapered_insert_hole(h=10*1.5, d=6*0.85, taper_h=1); // M4x10x6 insert TODO: lower diam
+            rotate([180,0,0]) tapered_insert_hole(h=10*1.5, d=6-0.5, taper_h=2, taper_d=6+clearance); // M4x10x6 insert TODO: lower diam
         }
     }
 }
@@ -168,7 +168,7 @@ module screws_display() {
         translate([x, y, display_z+display_pcb_depth])
             hole_threaded(display_screw_name, display_z+display_pcb_depth-wall, thread="no"); // M3x12 (or a little shorter)
         translate([x,y, display_z+0.1]) {
-            tapered_insert_hole(h=10*1.5, d=5*0.85, taper_h=1); // M3x10x5 insert TODO: lower diam
+            tapered_insert_hole(h=10*1.5, d=5-0.5, taper_h=2, taper_d=5+clearance); // M3x10x5 insert TODO: lower diam
         }
     }
 }
@@ -180,7 +180,7 @@ module screws_pcb() {
             hole_threaded(pcb_screw_name, 6, thread="no"); // M2x6
         }
         translate([x, y, pcb_usb_depth+0.1]) {
-            tapered_insert_hole(h=pcb_usb_depth+0.1-wall, d=3.5*0.85, taper_h=1); // M2x4x3.5 insert TODO: lower diam
+            tapered_insert_hole(h=pcb_usb_depth+0.1-wall, d=3.5-0.5, taper_h=1, taper_d=3.5+clearance); // M2x4x3.5 insert TODO: lower diam
         }
     }
 }

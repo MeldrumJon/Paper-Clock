@@ -67,11 +67,10 @@ module pipe(h, r, wall_thickness) {
     }
 }
 
-module tapered_insert_hole(h, d, taper_h, taper_deg=12) {
-    taper_diam = d + 2*taper_h*tan(taper_deg);
+module tapered_insert_hole(h, d, taper_h, taper_d) {
     union() {
         translate([0, 0, -h]) cylinder(h=h, d=d);
-        translate([0, 0, -taper_h/2]) cyl(h=taper_h, d1=d, d2=taper_diam);
+        translate([0, 0, -taper_h/2]) cyl(h=taper_h, d1=d, d2=taper_d);
     }
 }
 
