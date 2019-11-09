@@ -6,7 +6,7 @@
 
 ## Parts
 
-- 3D Printed Enclosure
+- [3D Printed Enclosure](https://www.shapeways.com/product/BBY7ZBEJE/paper-clock-enclosure)
 - 4x M4x10x6 Threaded Inserts
 - 4x M3x10x5 Threaded Inserts
 - 2x M2x4x3.5 Threaded Inserts
