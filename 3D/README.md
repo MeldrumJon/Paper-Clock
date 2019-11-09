@@ -13,7 +13,7 @@
 - 4x M3x8 Flat Head Machine Screws
 - 4x M4x10 Screws
 - 2x M2x4 Screws
-- 1/2in Bumpers Self-Adhesive Pads
+- 1/2 inch Bumpers Self-Adhesive Pads
 
 ## Assembly
 
@@ -24,6 +24,7 @@
 
 ![Assembled Enclosure 2](../../assets/Assembly2.jpg)
 
+- Attach the front of the enclosure.
 - Add legs to raise the display at an angle.
 
 ![Enclosure with Legs](../../assets/Legs.jpg)
