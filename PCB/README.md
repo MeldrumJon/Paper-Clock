@@ -1,5 +1,7 @@
 # Paper Clock PCB
 
+[Paper Clock PCB at OSHPark](https://oshpark.com/shared_projects/xSCSRdwl).
+
 ![3D Model of the PCB](../../assets/PCBModel.png)
 
 ## Parts
