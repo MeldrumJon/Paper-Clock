@@ -5,21 +5,22 @@
 #ifdef CONTROLLER_DEBUG
 #include <stdio.h>
 #endif
+#include <TimeLib.h>
 #include "clock.h"
 #include "disp.h"
 #include "btn.h"
 #include "timer.h"
 #include "encoder.h"
-#include "setting.h"
+#include "op.h"
 
 static enum controller_st_t {
 	INIT_ST,
 	OFF_ST,
 	WAKE_UP_ST,
     WHICH_ST,
-	SET_MERIDIEM_ST,
-	SET_HOUR_ST,
-	SET_MINUTE_ST,
+	TIME_SET_MERIDIEM_ST,
+	TIME_SET_HOUR_ST,
+	TIME_SET_MINUTE_ST,
 	DATE_SET_YEAR_ST,
 	DATE_SET_MONTH_ST,
 	DATE_SET_DAY_ST,
@@ -33,8 +34,9 @@ static uint16_t timeout_cnt;
 
 // Save power by disabling peripherals.
 static void powerdown(void) {
-    time_t t = clock_read();
-    disp_update(t, 1);
+    tmElements_t* tm = clock_read();
+    op_setTime(tm);
+    disp_update(1);
 	encoder_disable(); // Don't disable buttons, we need them to wake up!
 }
 
@@ -71,14 +73,14 @@ void debugStatePrint(void) {
             case WHICH_ST:
                 printf("WHICH_ST\r\n");
                 break;
-			case SET_MERIDIEM_ST:
-				printf("SET_MERIDIEM_ST\r\n");
+			case TIME_SET_MERIDIEM_ST:
+				printf("TIME_SET_MERIDIEM_ST\r\n");
 				break;
-			case SET_HOUR_ST:
-				printf("SET_HOUR_ST\r\n");
+			case TIME_SET_HOUR_ST:
+				printf("TIME_SET_HOUR_ST\r\n");
 				break;
-			case SET_MINUTE_ST:
-				printf("SET_MINUTE_ST\r\n");
+			case TIME_SET_MINUTE_ST:
+				printf("TIME_SET_MINUTE_ST\r\n");
 				break;
 			case DATE_SET_YEAR_ST:
 				printf("DATE_SET_YEAR_ST\r\n");
@@ -115,12 +117,6 @@ uint_fast8_t controller_isOff(void) {
 
 void controller_tick(void) {
     static uint8_t d_o_t;
-    static int16_t y;
-    static int8_t mo;
-    static int8_t d;
-    static int8_t h;
-    static int8_t m;
-    static int8_t pm;
 	int_fast8_t delta = encoder_delta();
 
 	// State action
@@ -136,13 +132,13 @@ void controller_tick(void) {
         case WHICH_ST:
             ++timeout_cnt;
             break;
-		case SET_MERIDIEM_ST:
+		case TIME_SET_MERIDIEM_ST:
             ++timeout_cnt;
 			break;
-		case SET_HOUR_ST:
+		case TIME_SET_HOUR_ST:
             ++timeout_cnt;
 			break;
-		case SET_MINUTE_ST:
+		case TIME_SET_MINUTE_ST:
             ++timeout_cnt;
 			break;
 		case DATE_SET_YEAR_ST:
@@ -173,17 +169,13 @@ void controller_tick(void) {
 		case WAKE_UP_ST:
 			if (btn_press_flag) {
 				powerup();
-                d_o_t = 0;
-                time_t t = clock_read();
-                y = year(t);
-                mo = month(t);
-                d = day(t);
-                h = (setting_getMeridiem() != MILITARY) ? hourFormat12(t) : hour(t);
-                m = minute(t);
-                pm = isPM(t);
+                d_o_t = 1;
+                tmElements_t* tm = clock_read();
+                op_setTime(tm);
 
 				timeout_cnt = 0;
-                disp_dateOrTime(d_o_t, 1);
+                disp_clear();
+                disp_setDoT(d_o_t);
                 currentState = WHICH_ST;
 			}
 			else if (timeout_cnt >= WAKE_TIMEOUT) {
@@ -193,18 +185,20 @@ void controller_tick(void) {
         case WHICH_ST:
             if (delta & 0x1) { // Odd number of turns
                 d_o_t = (!d_o_t); // Toggle date or time
-                disp_dateOrTime(d_o_t, 0);
+                disp_setDoT(d_o_t);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
                 if (d_o_t) {
-                    disp_setDate(y, mo, d, DRAW_YEAR, 0, 1);
+                    disp_setDate(op_year, op_month, op_day);
+                    disp_setDateYear(op_year, 1);
                     currentState = DATE_SET_YEAR_ST;
                 }
                 else {
-                    // TODO: show next setting
-                    // TODO: move to next state
+                    disp_setTime(op_meridiem, op_hour, op_minute);
+                    disp_setTimeMeridiem(op_meridiem, 1);
+                    currentState = TIME_SET_MERIDIEM_ST;
                 }
             }
             else if (timeout_cnt >= INPUT_TIMEOUT) {
@@ -214,15 +208,14 @@ void controller_tick(void) {
             break;
 		case DATE_SET_YEAR_ST:
             if (delta) {
-                y += delta;
-                if (y < 2000) { y = 2000; }
-                if (y > 2100) { y = 2100; }
-                disp_setDate(y, mo, d, DRAW_YEAR, 1, 0);
+                op_changeYear(delta);
+                disp_setDateYear(op_year, 1);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setDate(y, mo, d, DRAW_MONTH, 0, 0);
+                disp_setDateYear(op_year, 0);
+                disp_setDateMonth(op_month, 1);
                 currentState = DATE_SET_MONTH_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
@@ -232,15 +225,14 @@ void controller_tick(void) {
 			break;
 		case DATE_SET_MONTH_ST:
             if (delta) {
-                mo += delta;
-                if (mo < 1) { mo = 1; }
-                if (mo > 12) { mo = 12; }
-                disp_setDate(y, mo, d, DRAW_MONTH, 1, 0);
+                op_changeMonth(delta);
+                disp_setDateMonth(op_month, 1);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setDate(y, mo, d, DRAW_DAY, 0, 0);
+                disp_setDateMonth(op_month, 0);
+                disp_setDateDay(op_day, 1);
                 currentState = DATE_SET_DAY_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
@@ -250,16 +242,14 @@ void controller_tick(void) {
 			break;
 		case DATE_SET_DAY_ST:
             if (delta) {
-                d += delta;
-                if (d > 31) { d = 31; }
-                if (d < 1) { d = 1; }
-                disp_setDate(y, mo, d, DRAW_DAY, 1, 0);
+                op_changeDay(delta);
+                disp_setDateDay(op_day, 1);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setDate(y, mo, d, DRAW_NONE, 0, 0);
-                disp_confirm(0);
+                disp_setDateDay(op_day, 0);
+                disp_setSave();
                 currentState = CONFIRM_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
@@ -267,66 +257,51 @@ void controller_tick(void) {
 				currentState = OFF_ST;
 			}
 			break;
-		case SET_MERIDIEM_ST:
+		case TIME_SET_MERIDIEM_ST:
             if (delta) {
-                while (delta>0) {
-                    setting_meridiemNext(0);
-                    delta--;
-                }
-                while (delta<0) {
-                    setting_meridiemNext(1);
-                    delta++;
-                }
-                disp_showMeridiem();
+                op_changeMeridiem(delta);
+                disp_setTimeMeridiem(op_meridiem, 1);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setting(HOUR);
-                disp_showSet(h);
-                currentState = SET_HOUR_ST;
+                disp_setTimeMeridiem(op_meridiem, 0);
+                if (op_meridiem != MIL) { op_hour = clock_24to12(op_hour); }
+                disp_setTimeHour(op_hour, 1);
+                currentState = TIME_SET_HOUR_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
                 powerdown();
 				currentState = OFF_ST;
 			}
 			break;
-		case SET_HOUR_ST:
+		case TIME_SET_HOUR_ST:
             if (delta) {
-                h += delta;
-                if (setting_getMeridiem() != MILITARY) {
-                    if (h > 12) { h = 12; }
-                    if (h < 1) { h = 1; }
-                }
-                else {
-                    if (h > 23) { h = 23; }
-                    if (h < 0) { h = 0; }
-                }
-                disp_showSet(h);
+                op_changeHour(delta);
+                disp_setTimeHour(op_hour, 1);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_setting(MINUTE);
-                disp_showSet(m);
-                currentState = SET_MINUTE_ST;
+                disp_setTimeHour(op_hour, 0);
+                disp_setTimeMinute(op_minute, 1);
+                currentState = TIME_SET_MINUTE_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
                 powerdown();
 				currentState = OFF_ST;
 			}
 			break;
-		case SET_MINUTE_ST:
+		case TIME_SET_MINUTE_ST:
             if (delta) {
-                m += delta;
-                if (m > 59) { m = 59; }
-                if (m < 0) { m = 0; }
-                disp_showSet(m);
+                op_changeMinute(delta);
+                disp_setTimeMinute(op_minute, 1);
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
                 timeout_cnt = 0;
-                disp_confirm(0);
+                disp_setTimeMinute(op_minute, 0);
+                disp_setSave();
                 currentState = CONFIRM_ST;
             }
 			else if (timeout_cnt >= INPUT_TIMEOUT) {
@@ -339,18 +314,18 @@ void controller_tick(void) {
                 timeout_cnt = 0;
             }
             else if (btn_press_flag) {
+                disp_setSaving();
+                tmElements_t* tm = clock_read();
                 if (d_o_t) { // Date
-                    
+                    clock_set(op_year, op_month, op_day,
+                            tm->Hour, tm->Minute, tm->Second);
                 }
                 else {
+                    int8_t hour = (op_meridiem == MIL) ? op_hour
+                            : clock_12to24(op_hour, (op_meridiem == PM));
+                    clock_set(tmYearToCalendar((uint16_t)tm->Year), tm->Month, tm->Day, 
+                            hour, op_minute, 0);
                 }
-                disp_confirm(1);
-                uint8_t y2k_year = y - 2000;
-                setting_meridiem_t meridiem = setting_getMeridiem();
-                if (meridiem != MILITARY) {
-                    h = clock_12to24(h, (meridiem==PM));
-                }
-                clock_set(y2k_year, mo, d, h, m, 0);
                 powerdown();
                 currentState = OFF_ST;
             }

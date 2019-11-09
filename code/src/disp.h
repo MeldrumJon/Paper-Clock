@@ -3,34 +3,28 @@
 
 #include <stdint.h>
 #include <TimeLib.h>
-#include "clock.h"
-#include "setting.h"
-
-#define SET_DATE !(0)
-#define SET_TIME 0
-
-typedef enum date_enum {
-    DRAW_YEAR,
-    DRAW_MONTH,
-    DRAW_DAY,
-    DRAW_NONE
-} drawDate_t;
+#include "op.h"
 
 void disp_init();
 void disp_on();
 void disp_off();
 
 void disp_clear();
-void disp_update(time_t t, uint8_t refresh=0);
+void disp_update(uint8_t refresh=0);
 
+void disp_setDoT(uint8_t dateTime_n);
 
-void disp_dateOrTime(uint8_t dateTime_n, uint8_t firstRun);
-void disp_setDate(uint16_t yr, uint8_t m, uint8_t d, drawDate_t select_ymdn, 
-        uint8_t update, uint8_t firstRun);
+void disp_setDate(uint16_t yr, int8_t m, int8_t d);
+void disp_setDateYear(uint16_t yr, uint8_t sel);
+void disp_setDateMonth(int8_t m, uint8_t sel);
+void disp_setDateDay(int8_t d, uint8_t sel);
 
-void disp_setting(setting_t setting);
-void disp_showSet(uint16_t num);
-void disp_showMeridiem();
-void disp_confirm(uint8_t isSetting);
+void disp_setTime(op_meridiem_t meridiem, int8_t h, int8_t m);
+void disp_setTimeMeridiem(op_meridiem_t meridiem, uint8_t sel);
+void disp_setTimeHour(int8_t h, uint8_t sel);
+void disp_setTimeMinute(int8_t m, uint8_t sel);
+
+void disp_setSave();
+void disp_setSaving();
 
 #endif

@@ -34,12 +34,12 @@ class DS1337RTC
     static void interruptSelect(int mode);
     static void freqSelect(int freq);
     bool readOSF();
+    static void startClock();
+    static void stopClock();
 
   private:
     static uint8_t dec2bcd(uint8_t num);
     static uint8_t bcd2dec(uint8_t num);
-    static void startClock();
-    static void stopClock();
 };
 
 extern DS1337RTC RTC;

@@ -13,6 +13,7 @@
 #include "clock.h"
 #include "disp.h"
 #include "controller.h"
+#include "op.h"
 
 void setup()
 {
@@ -52,8 +53,9 @@ void setup()
     disp_init();
     disp_clear();
 
-    time_t t = clock_read();
-    disp_update(t);
+    tmElements_t* tm = clock_read();
+    op_setTime(tm);
+    disp_update();
 }
 
 void loop()
@@ -83,9 +85,10 @@ void loop()
         sei();
         clock_intrpt_ack();
 
-        if (controller_isOff()) {
-            time_t t = clock_read();
-            disp_update(t);
+        if (controller_isOff()) { // Only update when not setting the time
+            tmElements_t* tm = clock_read();
+            op_setTime(tm);
+            disp_update();
         }
     }
     sei();
