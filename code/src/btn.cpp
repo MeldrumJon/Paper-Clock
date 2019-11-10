@@ -14,8 +14,6 @@ static enum btn_st_t {
 	LONG_ST
 } currentState = LOW_ST;
 
-static uint16_t counter;
-
 uint8_t btn_press_flag = 0;
 uint8_t btn_longpress_flag = 0;
 
@@ -48,6 +46,7 @@ void btn_disable(void) {
 }
 
 void btn_tick(void) {
+    static uint16_t counter;
 	uint8_t btn = !(PIND & BTN_DMASK); // Get button state (active-low)
 
 	// State action

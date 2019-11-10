@@ -124,7 +124,7 @@ GxEPD2_BW<GxEPD2_290, MAX_HEIGHT(GxEPD2_290)> display(GxEPD2_290(/*CS=10*/ SS, /
 static const char MIL_STR[] = " 24";
 static const char AM_STR[] = "AM";
 static const char PM_STR[] = "PM";
-static const char* MERIDIEM_STR[3] = {
+static const char* const MERIDIEM_STR[3] = {
     MIL_STR,
     AM_STR,
     PM_STR
@@ -137,8 +137,6 @@ static const char SAVING_STR[] = "...";
 // Variables
 
 // Date/Time Buffers
-static char date_buf[31]; // Longest date string: "Wednesday, September 20, 2019" = 30 chars + \0
-static char time_buf[6]; // Longest time "12:00" = 4 chars + \0
 
 // Buffers for settings
 static char set_buf1[5];
@@ -149,6 +147,9 @@ static uint16_t dateWidth;
 static uint16_t timeWidth;
 static uint8_t dateX;
 static uint8_t timeX;
+static char buf18[18]; // Longest date string: "Wed, Sep 20, 2019" = 30 chars + \0
+static char buf6[6]; // Longest time "12:00" = 5 chars + \0
+static char buf3[3]; // Additional settings (days, months, hours, minutes)
 
 static enum updateMode_t {
     FULL,
@@ -238,17 +239,16 @@ void disp_clear() {
     do {
         display.fillScreen(GxEPD_WHITE);
     } while(display.nextPage());
-    display.hibernate();
     return;
 }
 
 void disp_update(uint8_t refresh /*=0*/) {
-    static uint16_t last_year;
-    static uint8_t last_month;
-    static uint8_t last_day;
-    static uint8_t last_hour;
-    static uint8_t last_minute;
-    static op_meridiem_t last_meridiem;
+    static uint16_t last_year = 0;
+    static uint8_t last_month = 0;
+    static uint8_t last_day = 0;
+    static uint8_t last_hour = 0;
+    static uint8_t last_minute = 0;
+    static op_meridiem_t last_meridiem = MIL;
 
 
     uint8_t date_diff = (op_day != last_day || op_month != last_month || op_year != last_year);
@@ -300,12 +300,28 @@ void disp_update(uint8_t refresh /*=0*/) {
 }
 
 void disp_setDoT(uint8_t dateTime_n) {
-    uint16_t date_fg = dateTime_n ? GxEPD_WHITE : GxEPD_BLACK;
-    uint16_t date_bg = dateTime_n ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t time_fg = dateTime_n ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t time_bg = dateTime_n ? GxEPD_WHITE : GxEPD_BLACK;
-    uint16_t rect_x = dateTime_n ? SET_DOT_DATE_CURSOR_X - 1 : SET_DOT_TIME_CURSOR_X - 1;
-    uint16_t rect_w = dateTime_n ? SMALL_DATE_WIDTH + 2 : SMALL_TIME_WIDTH + 2;
+    uint16_t date_fg;
+    uint16_t date_bg;
+    uint16_t time_fg;
+    uint16_t time_bg;
+    uint16_t rect_x;
+    uint16_t rect_w;
+    if (dateTime_n) {
+        date_fg = GxEPD_WHITE;
+        date_bg = GxEPD_BLACK;
+        time_fg = GxEPD_BLACK;
+        time_bg = GxEPD_WHITE;
+        rect_x  = SET_DOT_DATE_CURSOR_X-1;
+        rect_w  = SMALL_DATE_WIDTH+2;
+    }
+    else {
+        date_fg = GxEPD_BLACK;
+        date_bg = GxEPD_WHITE;
+        time_fg = GxEPD_WHITE;
+        time_bg = GxEPD_BLACK;
+        rect_x  = SET_DOT_TIME_CURSOR_X-1;
+        rect_w  = SMALL_TIME_WIDTH+2;
+    }
 
     display.setPartialWindow(SET_DOT_DATE_CURSOR_X-1, SET_AREA_Y,
             SET_DOT_WIDTH+2, SET_AREA_HEIGHT);
@@ -335,8 +351,8 @@ void disp_setDoT(uint8_t dateTime_n) {
 
 void disp_setTime(op_meridiem_t meridiem, int8_t h, int8_t m) {
     char* meridiem_str = (char*) MERIDIEM_STR[(int)meridiem];
-    sprintf(set_buf2, "%02d", h);
-    sprintf(set_buf3, "%02d", m);
+    sprintf(buf6, "%02d", h);
+    sprintf(buf3, "%02d", m);
 
     display.setFullWindow();
 
@@ -354,91 +370,22 @@ void disp_setTime(op_meridiem_t meridiem, int8_t h, int8_t m) {
         u8g2Fonts.print(meridiem_str); 
 
         u8g2Fonts.setCursor(SET_TIME_HOUR_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf2); 
+        u8g2Fonts.print(buf6); 
 
         u8g2Fonts.setCursor(SET_TIME_COLON_CURSOR_X, SET_CURSOR_Y);
         u8g2Fonts.print(':'); 
 
         u8g2Fonts.setCursor(SET_TIME_MINUTE_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf3); 
-    } while(display.nextPage());
-
-    return;
-}
-
-void disp_setTimeMeridiem(op_meridiem_t meridiem, uint8_t sel) {
-    uint16_t bg = sel ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t fg = sel ? GxEPD_WHITE : GxEPD_BLACK;
-
-    char* meridiem_str = (char*) MERIDIEM_STR[(int)meridiem];
-    
-    display.setPartialWindow(SET_TIME_MERIDIEM_CURSOR_X-1, SET_AREA_Y,
-        SMALL_MERIDIEM_WIDTH+2, SET_AREA_HEIGHT);
-
-    u8g2Fonts.setFont(SMALL_FONT);
-    u8g2Fonts.setForegroundColor(fg);
-    u8g2Fonts.setBackgroundColor(bg);
-    display.firstPage();
-    do {
-        display.fillScreen(bg);
-
-        u8g2Fonts.setCursor(SET_TIME_MERIDIEM_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(meridiem_str); 
-    } while(display.nextPage());
-
-    return;
-}
-
-void disp_setTimeHour(int8_t h, uint8_t sel) {
-    uint16_t bg = sel ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t fg = sel ? GxEPD_WHITE : GxEPD_BLACK;
-
-    sprintf(set_buf2, "%02d", h);
-    
-    display.setPartialWindow(SET_TIME_HOUR_CURSOR_X-1, SET_AREA_Y,
-        SMALL_HOUR_WIDTH+2, SET_AREA_HEIGHT);
-
-    u8g2Fonts.setFont(SMALL_FONT);
-    u8g2Fonts.setForegroundColor(fg);
-    u8g2Fonts.setBackgroundColor(bg);
-    display.firstPage();
-    do {
-        display.fillScreen(bg);
-
-        u8g2Fonts.setCursor(SET_TIME_HOUR_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf2); 
-    } while(display.nextPage());
-
-    return;
-}
-
-void disp_setTimeMinute(int8_t m, uint8_t sel) {
-    uint16_t bg = sel ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t fg = sel ? GxEPD_WHITE : GxEPD_BLACK;
-
-    sprintf(set_buf3, "%02d", m);
-    
-    display.setPartialWindow(SET_TIME_MINUTE_CURSOR_X-1, SET_AREA_Y,
-        SMALL_DAY_WIDTH+2, SET_AREA_HEIGHT);
-
-    u8g2Fonts.setFont(SMALL_FONT);
-    u8g2Fonts.setForegroundColor(fg);
-    u8g2Fonts.setBackgroundColor(bg);
-    display.firstPage();
-    do {
-        display.fillScreen(bg);
-
-        u8g2Fonts.setCursor(SET_TIME_MINUTE_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf3); 
+        u8g2Fonts.print(buf3); 
     } while(display.nextPage());
 
     return;
 }
 
 void disp_setDate(uint16_t yr, int8_t m, int8_t d) {
-    sprintf(set_buf1, "%04d", yr);
-    sprintf(set_buf2, "%02d", m);
-    sprintf(set_buf3, "%02d", d);
+    sprintf(buf18, "%04d", yr);
+    sprintf(buf6, "%02d", m);
+    sprintf(buf3, "%02d", d);
 
     display.setFullWindow();
 
@@ -453,32 +400,29 @@ void disp_setDate(uint16_t yr, int8_t m, int8_t d) {
         u8g2Fonts.print(DATE_STR);
 
         u8g2Fonts.setCursor(SET_DATE_YEAR_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf1); 
+        u8g2Fonts.print(buf18); 
 
         u8g2Fonts.setCursor(SET_DATE_DASH1_CURSOR_X, SET_CURSOR_Y);
         u8g2Fonts.print('-'); 
 
         u8g2Fonts.setCursor(SET_DATE_MONTH_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf2); 
+        u8g2Fonts.print(buf6); 
 
         u8g2Fonts.setCursor(SET_DATE_DASH2_CURSOR_X, SET_CURSOR_Y);
         u8g2Fonts.print('-'); 
 
         u8g2Fonts.setCursor(SET_DATE_DAY_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf3); 
+        u8g2Fonts.print(buf3); 
     } while(display.nextPage());
 
     return;
 }
 
-void disp_setDateYear(uint16_t yr, uint8_t sel) {
+static void _setSetting(char* str, uint8_t sel, uint16_t cursor_x, uint16_t str_width) {
     uint16_t bg = sel ? GxEPD_BLACK : GxEPD_WHITE;
     uint16_t fg = sel ? GxEPD_WHITE : GxEPD_BLACK;
-
-    sprintf(set_buf1, "%04d", yr);
     
-    display.setPartialWindow(SET_DATE_YEAR_CURSOR_X-1, SET_AREA_Y,
-        SMALL_YEAR_WIDTH+2, SET_AREA_HEIGHT);
+    display.setPartialWindow(cursor_x-1, SET_AREA_Y, str_width+2, SET_AREA_HEIGHT);
 
     u8g2Fonts.setFont(SMALL_FONT);
     u8g2Fonts.setForegroundColor(fg);
@@ -487,56 +431,47 @@ void disp_setDateYear(uint16_t yr, uint8_t sel) {
     do {
         display.fillScreen(bg);
 
-        u8g2Fonts.setCursor(SET_DATE_YEAR_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf1); 
+        u8g2Fonts.setCursor(cursor_x, SET_CURSOR_Y);
+        u8g2Fonts.print(str); 
     } while(display.nextPage());
 
+    return;
+}
+
+void disp_setTimeMeridiem(op_meridiem_t meridiem, uint8_t sel) {
+    char* meridiem_str = (char*) MERIDIEM_STR[(int)meridiem];
+    _setSetting(meridiem_str, sel, SET_TIME_MERIDIEM_CURSOR_X, SMALL_MERIDIEM_WIDTH);
+    return;
+}
+
+void disp_setTimeHour(int8_t h, uint8_t sel) {
+    sprintf(buf6, "%02d", h);
+    _setSetting(buf6, sel, SET_TIME_HOUR_CURSOR_X, SMALL_HOUR_WIDTH);
+    return;
+}
+
+void disp_setTimeMinute(int8_t m, uint8_t sel) {
+    sprintf(buf3, "%02d", m);
+    _setSetting(buf3, sel, SET_TIME_MINUTE_CURSOR_X, SMALL_DAY_WIDTH);
+    return;
+}
+
+
+void disp_setDateYear(uint16_t yr, uint8_t sel) {
+    sprintf(buf18, "%04d", yr);
+    _setSetting(buf18, sel, SET_DATE_YEAR_CURSOR_X, SMALL_YEAR_WIDTH);
     return;
 }
 
 void disp_setDateMonth(int8_t m, uint8_t sel) {
-    uint16_t bg = sel ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t fg = sel ? GxEPD_WHITE : GxEPD_BLACK;
-
-    sprintf(set_buf2, "%02d", m);
-    
-    display.setPartialWindow(SET_DATE_MONTH_CURSOR_X-1, SET_AREA_Y,
-        SMALL_MONTH_WIDTH+2, SET_AREA_HEIGHT);
-
-    u8g2Fonts.setFont(SMALL_FONT);
-    u8g2Fonts.setForegroundColor(fg);
-    u8g2Fonts.setBackgroundColor(bg);
-    display.firstPage();
-    do {
-        display.fillScreen(bg);
-
-        u8g2Fonts.setCursor(SET_DATE_MONTH_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf2); 
-    } while(display.nextPage());
-
+    sprintf(buf6, "%02d", m);
+    _setSetting(buf6, sel, SET_DATE_MONTH_CURSOR_X, SMALL_MONTH_WIDTH);
     return;
 }
 
 void disp_setDateDay(int8_t d, uint8_t sel) {
-    uint16_t bg = sel ? GxEPD_BLACK : GxEPD_WHITE;
-    uint16_t fg = sel ? GxEPD_WHITE : GxEPD_BLACK;
-
-    sprintf(set_buf3, "%02d", d);
-    
-    display.setPartialWindow(SET_DATE_DAY_CURSOR_X-1, SET_AREA_Y,
-        SMALL_DAY_WIDTH+2, SET_AREA_HEIGHT);
-
-    u8g2Fonts.setFont(SMALL_FONT);
-    u8g2Fonts.setForegroundColor(fg);
-    u8g2Fonts.setBackgroundColor(bg);
-    display.firstPage();
-    do {
-        display.fillScreen(bg);
-
-        u8g2Fonts.setCursor(SET_DATE_DAY_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(set_buf3); 
-    } while(display.nextPage());
-
+    sprintf(buf3, "%02d", d);
+    _setSetting(buf3, sel, SET_DATE_DAY_CURSOR_X, SMALL_DAY_WIDTH);
     return;
 }
 
@@ -570,3 +505,4 @@ void disp_setSaving() {
         u8g2Fonts.print(SAVING_STR);
     } while (display.nextPage());
 }
+
