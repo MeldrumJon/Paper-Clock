@@ -135,19 +135,10 @@ static const char SAVE_STR[] = "Set";
 static const char SAVING_STR[] = "...";
 
 // Variables
+static uint16_t date_x;
+static uint16_t time_x;
 
-// Date/Time Buffers
-
-// Buffers for settings
-static char set_buf1[5];
-static char set_buf2[3];
-static char set_buf3[3];
-
-static uint16_t dateWidth;
-static uint16_t timeWidth;
-static uint8_t dateX;
-static uint8_t timeX;
-static char buf18[18]; // Longest date string: "Wed, Sep 20, 2019" = 30 chars + \0
+static char buf31[31]; // Longest date string: "Wed, Sep 20, 2019" = 30 chars + \0
 static char buf6[6]; // Longest time "12:00" = 5 chars + \0
 static char buf3[3]; // Additional settings (days, months, hours, minutes)
 
@@ -168,13 +159,13 @@ static void _drawFull() {
 
         // Draw date string
         u8g2Fonts.setFont(SMALL_FONT);
-        u8g2Fonts.setCursor(dateX, DATE_CURSOR_Y);
-        u8g2Fonts.print(date_buf);
+        u8g2Fonts.setCursor(date_x, DATE_CURSOR_Y);
+        u8g2Fonts.print(buf31);
    
         // Draw time string
         u8g2Fonts.setFont(BIG_FONT);
-        u8g2Fonts.setCursor(timeX, TIME_CURSOR_Y);
-        u8g2Fonts.print(time_buf);
+        u8g2Fonts.setCursor(time_x, TIME_CURSOR_Y);
+        u8g2Fonts.print(buf6);
         
         // Draw Meridian
         if (op_meridiem != MIL) {
@@ -219,8 +210,8 @@ static void _drawTime() {
         // Background Color
         display.fillScreen(GxEPD_WHITE);
         // Draw Time String
-        u8g2Fonts.setCursor(timeX, TIME_CURSOR_Y);
-        u8g2Fonts.print(time_buf);
+        u8g2Fonts.setCursor(time_x, TIME_CURSOR_Y);
+        u8g2Fonts.print(buf6);
     } while (display.nextPage());
     display.hibernate();
     return;
@@ -250,9 +241,10 @@ void disp_update(uint8_t refresh /*=0*/) {
     static uint8_t last_minute = 0;
     static op_meridiem_t last_meridiem = MIL;
 
-
     uint8_t date_diff = (op_day != last_day || op_month != last_month || op_year != last_year);
     uint8_t time_diff = (op_minute != last_minute || op_hour != last_hour || op_meridiem != last_meridiem);
+
+    uint16_t time_width;
 
     if (!time_diff && !date_diff && !refresh) { // No change, don't do anything
         return;
@@ -260,27 +252,26 @@ void disp_update(uint8_t refresh /*=0*/) {
 
     if (date_diff || refresh) {
         // Update Date
-        sprintf(date_buf, "%s, %s %d, %d", 
+        sprintf(buf31, "%s, %s %d, %d", 
                 dayStr(clock_dayofweek(op_year, op_month, op_day)), monthStr(op_month), 
                 op_day, op_year);
         u8g2Fonts.setFont(SMALL_FONT);
-        dateWidth = u8g2Fonts.getUTF8Width(date_buf);
-        dateX = (DISP_WIDTH-dateWidth)/2;
+        date_x = (DISP_WIDTH-u8g2Fonts.getUTF8Width(buf31))/2;
     }
     // Update Time
     if (op_meridiem != MIL) {
-        sprintf(time_buf, "%d:%02d", op_hour, op_minute);
+        sprintf(buf6, "%d:%02d", op_hour, op_minute);
     }
     else {
-        sprintf(time_buf, "%02d:%02d", op_hour, op_minute);
+        sprintf(buf6, "%02d:%02d", op_hour, op_minute);
     }
     u8g2Fonts.setFont(BIG_FONT);
-    timeWidth = u8g2Fonts.getUTF8Width(time_buf);
+    time_width = u8g2Fonts.getUTF8Width(buf6);
     if (op_hour < 10 || op_meridiem == MIL) {
-        timeX = (DISP_WIDTH-timeWidth)/2; // Center
+        time_x = (DISP_WIDTH-time_width)/2; // Center
     }
     else { 
-        timeX = (TIME12_AREA_WIDTH-timeWidth)/2 - 2;
+        time_x = (TIME12_AREA_WIDTH-time_width)/2 - 2;
     }
 
     if (date_diff || refresh) {
@@ -383,7 +374,7 @@ void disp_setTime(op_meridiem_t meridiem, int8_t h, int8_t m) {
 }
 
 void disp_setDate(uint16_t yr, int8_t m, int8_t d) {
-    sprintf(buf18, "%04d", yr);
+    sprintf(buf31, "%04d", yr);
     sprintf(buf6, "%02d", m);
     sprintf(buf3, "%02d", d);
 
@@ -400,7 +391,7 @@ void disp_setDate(uint16_t yr, int8_t m, int8_t d) {
         u8g2Fonts.print(DATE_STR);
 
         u8g2Fonts.setCursor(SET_DATE_YEAR_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(buf18); 
+        u8g2Fonts.print(buf31); 
 
         u8g2Fonts.setCursor(SET_DATE_DASH1_CURSOR_X, SET_CURSOR_Y);
         u8g2Fonts.print('-'); 
@@ -458,8 +449,8 @@ void disp_setTimeMinute(int8_t m, uint8_t sel) {
 
 
 void disp_setDateYear(uint16_t yr, uint8_t sel) {
-    sprintf(buf18, "%04d", yr);
-    _setSetting(buf18, sel, SET_DATE_YEAR_CURSOR_X, SMALL_YEAR_WIDTH);
+    sprintf(buf31, "%04d", yr);
+    _setSetting(buf31, sel, SET_DATE_YEAR_CURSOR_X, SMALL_YEAR_WIDTH);
     return;
 }
 
