@@ -132,7 +132,7 @@ static const char SAVING_STR[] = "...";
 // Variables
 
 // Date/Time Buffers
-static char buf18[18]; // Longest date string: "Wed, Sep 20, 2019" = 30 chars + \0
+static char buf18[24]; // Longest date string: "Wednesday, Sep 20, 2019" = 23 chars + \0
 static char buf6[6]; // Longest time "12:00" = 5 chars + \0
 static char buf3[3]; // Additional settings (days, months, hours, minutes)
 
@@ -196,7 +196,7 @@ void disp_update(uint8_t refresh /*=0*/) {
     }
     u8g2Fonts.setFont(BIG_FONT);
     time_x = (DISP_WIDTH-u8g2Fonts.getUTF8Width(buf6))/2; // Center
-    if (op_hour >= 10 && op_hour < 20) { time_x -= 2; }
+    if (op_hour >= 10 && op_hour < 20) { time_x -= 3; }
 
     bg = (op_meridiem==PM) ? GxEPD_BLACK : GxEPD_WHITE;
     fg = (op_meridiem==PM) ? GxEPD_WHITE : GxEPD_BLACK;
