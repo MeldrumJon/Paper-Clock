@@ -116,7 +116,7 @@ class GxEPD2_3C : public Adafruit_GFX
     }
 
     // init method with additional parameters:
-    // initial true for re-init after processor deep sleep wake up, if display power supply was kept
+    // initial false for re-init after processor deep sleep wake up, if display power supply was kept
     // only relevant for b/w displays with fast partial update
     // pulldown_rst_mode true for alternate RST handling to avoid feeding 5V through RST pin
     void init(uint32_t serial_diag_bitrate, bool initial, bool pulldown_rst_mode = false)
@@ -146,6 +146,7 @@ class GxEPD2_3C : public Adafruit_GFX
     {
       epd2.writeImage(_black_buffer, _color_buffer, 0, 0, WIDTH, _page_height);
       epd2.refresh(partial_update_mode);
+      if (!partial_update_mode) epd2.powerOff();
     }
 
     // display part of buffer content to screen, useful for full screen buffer

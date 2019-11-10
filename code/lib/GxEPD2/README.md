@@ -14,6 +14,7 @@
 - do not forget to connect GND
 - the actual Waveshare display boards now have level converters and series regulator, safe for 5V
 - use 4k7 pull-down on SS for ESP8266 for boards with level converters
+- note that 7.5" e-paper displays don't work reliable if fed from 3.3V Arduino pin
 
 ### Paged Drawing, Picture Loop
  - This library uses paged drawing to limit RAM use and cope with missing single pixel update support
@@ -66,13 +67,32 @@
 - GDEW042Z15     4.2" b/w/r
 - GDEW0583T7     5.83" b/w
 - GDEW075T8      7.5" b/w
+- GDEW075T7      7.5" b/w 800x480
 - GDEW075Z09     7.5" b/w/r
 - GDEW075Z08     7.5" b/w/r 800x480
 #### Supported SPI e-paper panels & boards from Waveshare: compare with Good Display, same panel
 #### other supported panels
 - ED060SCT        6" grey levels, on Waveshare e-Paper IT8951 Driver HAT
 
-### Version 1.1.10
+### Version 1.2.2
+- fixed BMP handling, e.g. for BMPs created by ImageMagick
+- see also Arduino Forum Topic https://forum.arduino.cc/index.php?topic=642343.0
+#### Version 1.2.1
+- added support for GDEW075T7 7.5" b/w 800x480
+- GDEW075T7 has differential update (1.6s) using a charge balancing waveform
+- added optional SW SPI support, see /extras/sw_spi/README
+- added /extras/tests/GxEPD2_RefreshTests/GxEPD2_RefreshTests.ino, for waveform tuning
+- minor fixes 
+- note that 7.5" e-paper displays don't work reliable if fed from 3.3V Arduino pin
+#### Version 1.2.0
+- added "fast partial update" (differential update) for GDEW0371W7 3.7" b/w 240x416
+- improved differential update waveform for GDEW026T0 2.6" b/w 152x256
+- fixed init code & improved differential update for GDEW042T2 4.2" b/w 300x400
+- note that all differential refresh waveforms are a compromise (ghosting, big font use)
+- parameters for differential waveform for these display can easily be changed for experimenting
+- GDEW042T2 would have greyed background without sustain phase
+- GDEW042T2 needs multiple full refreshes after extended use of partial updates
+#### Version 1.1.10
 - added support for GDEH0213B73 2.13" b/w, replacement for GDE0213B1, GDEH0213B72
 - added support for GDEW026T0 2.6" b/w 152x256
 - added support for GDEW0371W7 3.7" b/w 240x416
