@@ -101,11 +101,15 @@ void GxEPD2_EPD::_reset()
 
 void GxEPD2_EPD::_waitWhileBusy(const char* comment, uint16_t busy_time)
 {
-  _delay_ms(1); // add some margin to become active
-  while (digitalRead(_busy) == _busy_level);
+  if (_busy >= 0)
   {
-    timer_wait(1);
+    _delay_ms(1); // add some margin to become active
+    while (digitalRead(_busy) == _busy_level)
+    {
+      timer_wait(1);
+    }
   }
+  else _delay_ms(5000);
 }
 
 void GxEPD2_EPD::_writeCommand(uint8_t c)
