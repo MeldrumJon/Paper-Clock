@@ -55,7 +55,7 @@ void setup()
 
     tmElements_t* tm = clock_read();
     op_setTime(tm);
-    disp_update();
+    disp_update(1);
 }
 
 void loop()

@@ -98,7 +98,7 @@ void debugStatePrint(void) {
 	}
 }
 #else
-void debugStatePrint(void) {}
+#define debugStatePrint() ;
 #endif
 
 void controller_wakeup(void) {
@@ -127,29 +127,13 @@ void controller_tick(void) {
             // No ticks will happen while in this state.
 			break;
 		case WAKE_UP_ST:
-            ++timeout_cnt;
-			break;
         case WHICH_ST:
-            ++timeout_cnt;
-            break;
 		case TIME_SET_MERIDIEM_ST:
-            ++timeout_cnt;
-			break;
 		case TIME_SET_HOUR_ST:
-            ++timeout_cnt;
-			break;
 		case TIME_SET_MINUTE_ST:
-            ++timeout_cnt;
-			break;
 		case DATE_SET_YEAR_ST:
-            ++timeout_cnt;
-			break;
 		case DATE_SET_MONTH_ST:
-            ++timeout_cnt;
-			break;
 		case DATE_SET_DAY_ST:
-            ++timeout_cnt;
-			break;
 		case CONFIRM_ST:
             ++timeout_cnt;
 			break;

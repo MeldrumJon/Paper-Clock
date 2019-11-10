@@ -21,7 +21,7 @@ static tmElements_t timeElems;
 volatile uint_fast8_t clk_intrpt_flag = 0;
 
 ISR(INT0_vect, ISR_BLOCK) {
-	clk_intrpt_flag = !(0); // Do something with this flag to turn back on timer2
+	clk_intrpt_flag = 1; // Do something with this flag to turn back on timer2
 }
 
 void clock_init() {
@@ -61,6 +61,11 @@ void clock_intrpt_dis() {
 // Defined in header:
 // void clock_intrpt_ack()
 
+tmElements_t* clock_read() {
+    RTC.read(timeElems, CLOCK_ADDRESS); // timeElems passed by reference
+    return &timeElems;
+}
+
 void clock_set(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, 
         uint8_t minute, uint8_t second) {
     timeElems.Year = CalendarYrToTm(year);
@@ -75,11 +80,6 @@ void clock_set(uint16_t year, uint8_t month, uint8_t day, uint8_t hour,
     return;
 }
 
-tmElements_t* clock_read() {
-    RTC.read(timeElems, CLOCK_ADDRESS); // timeElems passed by reference
-    return &timeElems;
-}
-
 int8_t clock_12to24(int8_t hfmt12, uint8_t ispm) {
     if (!ispm && hfmt12 == 12) { return 0; } // 12am
     else if (!ispm) { return hfmt12; } // am
@@ -92,14 +92,14 @@ int8_t clock_24to12(int8_t hour) {
     else if (hour > 12) { return (hour - 12); } // pm
     else { return hour; } // am
 }
-
 int8_t clock_dayofweek(int16_t year, int8_t month, int8_t day) {
+    static const int8_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+
     static int8_t dow = 0;
     static int16_t last_year = 0;
     static int8_t last_month = 0;
     static int8_t last_day = 0;
 
-    static int8_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
     if (day != last_day || month != last_month || year != last_year) {
         year -= (month < 3) ? 1 : 0;
         dow = (year + year/4 - year/100 + year/400 + t[month-1] + day) % 7;
