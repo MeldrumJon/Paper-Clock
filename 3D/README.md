@@ -18,6 +18,9 @@
 ## Assembly
 
 - Use a soldering iron to insert the threaded inserts.
+	- M2 for the PCB
+	- M3 for the display
+	- M4 for the enclosure
 - Once cooled, mount display, PCB and rotary encoder.
 
 ![Assembled Enclosure 1](../../assets/Assembly1.jpg)
