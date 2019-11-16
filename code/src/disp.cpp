@@ -44,7 +44,7 @@ extern const uint8_t u8g2_font_timR18_cc[] U8G2_FONT_SECTION("u8g2_font_timR18_c
 #define TIME_AREA_Y (DATE_CURSOR_Y+SMALL_FONT_DESCENT+2)
 #define TIME_AREA_HEIGHT (DISP_HEIGHT-TIME_AREA_Y)
 
-#define PM_INDICATOR_WIDTH 13
+#define PM_INDICATOR_WIDTH 14
 #define PM_INDICATOR_HEIGHT 14
 #define PM_INDICATOR_X (DISP_WIDTH-PM_INDICATOR_WIDTH)
 #define PM_INDICATOR_Y (DISP_HEIGHT-PM_INDICATOR_HEIGHT)
@@ -203,7 +203,7 @@ void disp_update(uint8_t refresh /*=0*/) {
 
     u8g2Fonts.setForegroundColor(GxEPD_BLACK);
     u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-    if ((op_minute % 15) == 0 || date_diff || refresh) {
+    if ((op_minute % 30) == 0 || date_diff || refresh) {
         display.setFullWindow();
         display.firstPage();
         do {
