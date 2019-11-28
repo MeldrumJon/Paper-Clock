@@ -10,47 +10,48 @@
 
 // Fonts
 U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
-extern const uint8_t u8g2_font_droidserif_96pt[] U8G2_FONT_SECTION("u8g2_font_droidserif_96pt");
-extern const uint8_t u8g2_font_timR14_v2[] U8G2_FONT_SECTION("u8g2_font_timR14_v2");
+extern const uint8_t u8g2_font_droidserif_108pt[] U8G2_FONT_SECTION("u8g2_font_droidserif_108pt");
+extern const uint8_t u8g2_font_timR18_cc[] U8G2_FONT_SECTION("u8g2_font_timR18_cc");
 
 #define DISP_WIDTH 296
 #define DISP_HEIGHT 128
 
-#define SMALL_FONT u8g2_font_timR14_v2
-#define BIG_FONT u8g2_font_droidserif_96pt
+#define SMALL_FONT u8g2_font_timR18_cc
+#define BIG_FONT u8g2_font_droidserif_108pt
 
-#define SMALL_FONT_ASCENT 13
-#define SMALL_FONT_DESCENT 4
-#define BIG_FONT_ASCENT 69
-#define BIG_FONT_DESCENT 23
+#define SMALL_FONT_ASCENT 17
+#define SMALL_FONT_DESCENT 6
+#define SMALL_FONT_HEIGHT 23
+#define BIG_FONT_ASCENT 77
+#define BIG_FONT_DESCENT 26
+#define BIG_FONT_HEIGHT 103
 
-// Time Display
+// Fonts
+#define TIME_MAX_WIDTH 270
 
-#define MERIDIEM_WIDTH 25+1
-#define MERIDIEM_HEIGHT SMALL_FONT_ASCENT+1
-#define MERIDIEM_PADDING 7
-#define MERIDIEM_CURSOR_X (DISP_WIDTH - (MERIDIEM_WIDTH + MERIDIEM_PADDING))
-#define MERIDIEM_CURSOR_Y (DISP_HEIGHT - MERIDIEM_PADDING)
-#define MERIDIEM_AREA_WIDTH (MERIDIEM_WIDTH + MERIDIEM_PADDING*2 - 2)
-#define MERIDIEM_AREA_HEIGHT (MERIDIEM_HEIGHT + MERIDIEM_PADDING*2)
-#define MERIDIEM_AREA_X (DISP_WIDTH - MERIDIEM_AREA_WIDTH)
-#define MERIDIEM_AREA_Y (DISP_HEIGHT - MERIDIEM_AREA_HEIGHT)
+// Main Display
 
-#define TIME_DATE_PADDING 20
-#define TIME_DATE_HEIGHT (BIG_FONT_ASCENT + SMALL_FONT_ASCENT + TIME_DATE_PADDING)
+#define DISP_PADDING_TOP 8
+#define DISP_PADDING_BOT 12
 
-#define TIME_CURSOR_Y ((DISP_HEIGHT + TIME_DATE_HEIGHT)/2-1)
-#define TIME12_AREA_WIDTH (DISP_WIDTH - (MERIDIEM_AREA_WIDTH+1))
-#define TIME24_AREA_WIDTH (DISP_WIDTH)
-#define TIME_AREA_HEIGHT ((DISP_HEIGHT - TIME_CURSOR_Y) + BIG_FONT_ASCENT + 2)
-#define TIME_AREA_X 0
-#define TIME_AREA_Y (TIME_CURSOR_Y - BIG_FONT_ASCENT - 1)
+#define DATE_CURSOR_Y (DISP_PADDING_TOP+SMALL_FONT_ASCENT)
+#define TIME_CURSOR_Y (DISP_HEIGHT-DISP_PADDING_BOT)
 
-#define DATE_CURSOR_Y (TIME_CURSOR_Y - BIG_FONT_ASCENT - TIME_DATE_PADDING+1)
+#define TIME_AREA_PADDING 4
+
+#define TIME_AREA_X ((DISP_WIDTH-TIME_MAX_WIDTH)/2-TIME_AREA_PADDING)
+#define TIME_AREA_WIDTH (TIME_MAX_WIDTH+2*TIME_AREA_PADDING)
+#define TIME_AREA_Y (DATE_CURSOR_Y+SMALL_FONT_DESCENT+2)
+#define TIME_AREA_HEIGHT (DISP_HEIGHT-TIME_AREA_Y)
+
+#define PM_INDICATOR_WIDTH 14
+#define PM_INDICATOR_HEIGHT 14
+#define PM_INDICATOR_X (DISP_WIDTH-PM_INDICATOR_WIDTH)
+#define PM_INDICATOR_Y (DISP_HEIGHT-PM_INDICATOR_HEIGHT)
 
 // Settings
-#define SMALL_DATE_WIDTH 36
-#define SMALL_TIME_WIDTH 39
+#define SMALL_DATE_WIDTH 45
+#define SMALL_TIME_WIDTH 52
 
 #define SET_LINE_SPACING 20
 
@@ -64,8 +65,8 @@ extern const uint8_t u8g2_font_timR14_v2[] U8G2_FONT_SECTION("u8g2_font_timR14_v
 #define SET_SAVE_AREA_Y (SET_SAVE_CURSOR_Y-SMALL_FONT_ASCENT-1)
 #define SET_SAVE_AREA_HEIGHT (SMALL_FONT_ASCENT+2)
 
-#define SET_SAVE_WIDTH 25
-#define SET_SAVING_WIDTH 11
+#define SET_SAVE_WIDTH 31
+#define SET_SAVING_WIDTH 16
 #define SET_SAVE_CURSOR_X ((DISP_WIDTH-SET_SAVE_WIDTH)/2)
 #define SET_SAVING_CURSOR_X ((DISP_WIDTH-SET_SAVING_WIDTH)/2)
 
@@ -82,10 +83,10 @@ extern const uint8_t u8g2_font_timR14_v2[] U8G2_FONT_SECTION("u8g2_font_timR14_v
 #define SET_DOT_TIME_CURSOR_X (SET_DOT_DATE_CURSOR_X+SMALL_DATE_WIDTH+SET_DOT_SPACING)
 
 // date
-#define SMALL_DASH_WIDTH 5
-#define SMALL_YEAR_WIDTH 36
-#define SMALL_MONTH_WIDTH 18
-#define SMALL_DAY_WIDTH 18
+#define SMALL_DASH_WIDTH 6
+#define SMALL_YEAR_WIDTH 47
+#define SMALL_MONTH_WIDTH 23
+#define SMALL_DAY_WIDTH 23
 
 #define SET_DATE_SPACING 16
 #define SET_DATE_WIDTH (SMALL_YEAR_WIDTH+SMALL_MONTH_WIDTH+SMALL_DAY_WIDTH+2*SMALL_DASH_WIDTH+4*SET_DATE_SPACING)
@@ -98,10 +99,10 @@ extern const uint8_t u8g2_font_timR14_v2[] U8G2_FONT_SECTION("u8g2_font_timR14_v
 #define SET_DATE_DAY_CURSOR_X (SET_DATE_DASH2_CURSOR_X+SMALL_DASH_WIDTH+SET_DATE_SPACING)
 
 // time
-#define SMALL_MERIDIEM_WIDTH 29
-#define SMALL_HOUR_WIDTH 18
-#define SMALL_COLON_WIDTH 3
-#define SMALL_MINUTE_WIDTH 18
+#define SMALL_MERIDIEM_WIDTH 39
+#define SMALL_HOUR_WIDTH 23
+#define SMALL_COLON_WIDTH 4
+#define SMALL_MINUTE_WIDTH 23
 
 #define SET_TIME_MERIDIEM_SPACING 34
 #define SET_TIME_COLON_SPACING 12
@@ -135,10 +136,9 @@ static const char SAVE_STR[] = "Set";
 static const char SAVING_STR[] = "...";
 
 // Variables
-static uint16_t date_x;
-static uint16_t time_x;
 
-static char buf31[31]; // Longest date string: "Wed, Sep 20, 2019" = 30 chars + \0
+// Date/Time Buffers
+static char buf18[24]; // Longest date string: "Wednesday, Sep 20, 2019" = 23 chars + \0
 static char buf6[6]; // Longest time "12:00" = 5 chars + \0
 static char buf3[3]; // Additional settings (days, months, hours, minutes)
 
@@ -146,76 +146,6 @@ static enum updateMode_t {
     FULL,
     TIME
 } updateMode;
-
-static void _drawFull() {
-    display.setFullWindow();
-    display.firstPage();
-    do {
-        // Background Color
-        display.fillScreen(GxEPD_WHITE);
-
-        u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-        u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-
-        // Draw date string
-        u8g2Fonts.setFont(SMALL_FONT);
-        u8g2Fonts.setCursor(date_x, DATE_CURSOR_Y);
-        u8g2Fonts.print(buf31);
-   
-        // Draw time string
-        u8g2Fonts.setFont(BIG_FONT);
-        u8g2Fonts.setCursor(time_x, TIME_CURSOR_Y);
-        u8g2Fonts.print(buf6);
-        
-        // Draw Meridian
-        if (op_meridiem != MIL) {
-            u8g2Fonts.setFont(SMALL_FONT);
-            u8g2Fonts.setCursor(MERIDIEM_CURSOR_X, MERIDIEM_CURSOR_Y);
-            if (op_meridiem == PM) {
-                display.writeFillRect(MERIDIEM_AREA_X, MERIDIEM_AREA_Y,
-                        MERIDIEM_AREA_WIDTH, MERIDIEM_AREA_HEIGHT,
-                        GxEPD_BLACK);
-                u8g2Fonts.setForegroundColor(GxEPD_WHITE);
-                u8g2Fonts.setBackgroundColor(GxEPD_BLACK);
-                u8g2Fonts.print(MERIDIEM_STR[(int)op_meridiem]);
-            }
-            else {
-                display.writeFastHLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_WIDTH, GxEPD_BLACK);
-                display.writeFastVLine(MERIDIEM_AREA_X, MERIDIEM_AREA_Y, MERIDIEM_AREA_HEIGHT, GxEPD_BLACK);
-                u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-                u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-                u8g2Fonts.print(MERIDIEM_STR[(int)op_meridiem]);
-            }
-        }
-    } while (display.nextPage());
-    display.hibernate();
-    return;
-}
-
-static void _drawTime() {
-    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
-    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
-    u8g2Fonts.setFont(BIG_FONT);
-    
-    if (op_meridiem == MIL) {
-        display.setPartialWindow(TIME_AREA_X, TIME_AREA_Y,
-                TIME24_AREA_WIDTH, TIME_AREA_HEIGHT);
-    }
-    else {
-        display.setPartialWindow(TIME_AREA_X, TIME_AREA_Y,
-                TIME12_AREA_WIDTH, TIME_AREA_HEIGHT);
-    }
-    display.firstPage();
-    do {
-        // Background Color
-        display.fillScreen(GxEPD_WHITE);
-        // Draw Time String
-        u8g2Fonts.setCursor(time_x, TIME_CURSOR_Y);
-        u8g2Fonts.print(buf6);
-    } while (display.nextPage());
-    display.hibernate();
-    return;
-}
 
 void disp_init() {
     display.init();
@@ -241,10 +171,11 @@ void disp_update(uint8_t refresh /*=0*/) {
     static uint8_t last_minute = 0;
     static op_meridiem_t last_meridiem = MIL;
 
+    static uint16_t date_x;
+    static uint16_t time_x;
+
     uint8_t date_diff = (op_day != last_day || op_month != last_month || op_year != last_year);
     uint8_t time_diff = (op_minute != last_minute || op_hour != last_hour || op_meridiem != last_meridiem);
-
-    uint16_t time_width;
 
     if (!time_diff && !date_diff && !refresh) { // No change, don't do anything
         return;
@@ -252,12 +183,13 @@ void disp_update(uint8_t refresh /*=0*/) {
 
     if (date_diff || refresh) {
         // Update Date
-        sprintf(buf31, "%s, %s %d, %d", 
-                dayStr(clock_dayofweek(op_year, op_month, op_day)), monthStr(op_month), 
-                op_day, op_year);
+        sprintf(buf18, "%s, %s %d, %d", 
+                dayStr(clock_dayofweek(op_year, op_month, op_day)),
+                monthShortStr(op_month), op_day, op_year);
         u8g2Fonts.setFont(SMALL_FONT);
-        date_x = (DISP_WIDTH-u8g2Fonts.getUTF8Width(buf31))/2;
+        date_x = (DISP_WIDTH-u8g2Fonts.getUTF8Width(buf18))/2;
     }
+
     // Update Time
     if (op_meridiem != MIL) {
         sprintf(buf6, "%d:%02d", op_hour, op_minute);
@@ -266,20 +198,42 @@ void disp_update(uint8_t refresh /*=0*/) {
         sprintf(buf6, "%02d:%02d", op_hour, op_minute);
     }
     u8g2Fonts.setFont(BIG_FONT);
-    time_width = u8g2Fonts.getUTF8Width(buf6);
-    if (op_hour < 10 || op_meridiem == MIL) {
-        time_x = (DISP_WIDTH-time_width)/2; // Center
-    }
-    else { 
-        time_x = (TIME12_AREA_WIDTH-time_width)/2 - 2;
-    }
+    time_x = (DISP_WIDTH-u8g2Fonts.getUTF8Width(buf6))/2; // Center
+    if (op_hour >= 10 && op_hour < 20) { time_x -= 3; }
 
-    if (date_diff || refresh) {
-        _drawFull();
+    u8g2Fonts.setForegroundColor(GxEPD_BLACK);
+    u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+    if ((op_minute % 30) == 0 || date_diff || refresh) {
+        display.setFullWindow();
+        display.firstPage();
+        do {
+            display.fillScreen(GxEPD_WHITE);
+            if (op_meridiem == PM) { 
+                display.writeFillRect(PM_INDICATOR_X, PM_INDICATOR_Y, PM_INDICATOR_WIDTH, PM_INDICATOR_HEIGHT, GxEPD_BLACK);
+            }
+            u8g2Fonts.setFont(SMALL_FONT);
+            u8g2Fonts.setCursor(date_x, DATE_CURSOR_Y);
+            u8g2Fonts.print(buf18);
+            u8g2Fonts.setFont(BIG_FONT);
+            u8g2Fonts.setCursor(time_x, TIME_CURSOR_Y);
+            u8g2Fonts.print(buf6);
+        } while (display.nextPage());
     }
     else {
-        _drawTime();
+        display.setPartialWindow(TIME_AREA_X, TIME_AREA_Y,
+                TIME_AREA_WIDTH, TIME_AREA_HEIGHT);
+        u8g2Fonts.setFont(BIG_FONT);
+        display.firstPage();
+        do {
+            display.fillScreen(GxEPD_WHITE);
+            if (op_meridiem == PM) { 
+                display.writeFillRect(PM_INDICATOR_X, PM_INDICATOR_Y, PM_INDICATOR_WIDTH, PM_INDICATOR_HEIGHT, GxEPD_BLACK);
+            }
+            u8g2Fonts.setCursor(time_x, TIME_CURSOR_Y);
+            u8g2Fonts.print(buf6);
+        } while (display.nextPage());
     }
+    display.hibernate();
 
     last_year = op_year;
     last_month = op_month;
@@ -374,7 +328,7 @@ void disp_setTime(op_meridiem_t meridiem, int8_t h, int8_t m) {
 }
 
 void disp_setDate(uint16_t yr, int8_t m, int8_t d) {
-    sprintf(buf31, "%04d", yr);
+    sprintf(buf18, "%04d", yr);
     sprintf(buf6, "%02d", m);
     sprintf(buf3, "%02d", d);
 
@@ -391,7 +345,7 @@ void disp_setDate(uint16_t yr, int8_t m, int8_t d) {
         u8g2Fonts.print(DATE_STR);
 
         u8g2Fonts.setCursor(SET_DATE_YEAR_CURSOR_X, SET_CURSOR_Y);
-        u8g2Fonts.print(buf31); 
+        u8g2Fonts.print(buf18); 
 
         u8g2Fonts.setCursor(SET_DATE_DASH1_CURSOR_X, SET_CURSOR_Y);
         u8g2Fonts.print('-'); 
@@ -449,8 +403,8 @@ void disp_setTimeMinute(int8_t m, uint8_t sel) {
 
 
 void disp_setDateYear(uint16_t yr, uint8_t sel) {
-    sprintf(buf31, "%04d", yr);
-    _setSetting(buf31, sel, SET_DATE_YEAR_CURSOR_X, SMALL_YEAR_WIDTH);
+    sprintf(buf18, "%04d", yr);
+    _setSetting(buf18, sel, SET_DATE_YEAR_CURSOR_X, SMALL_YEAR_WIDTH);
     return;
 }
 
