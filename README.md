@@ -13,7 +13,7 @@ Minimalistic clock with an e-ink display.
 ## Components
 
 - [Enclosure](./3D)
-- [PCB](./PCB)
-- [Software](./code)
+- [PCB](./hardware)
+- [Firmware](./src)
 
 
