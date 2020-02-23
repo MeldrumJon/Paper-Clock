@@ -1,7 +1,5 @@
 # Paper Clock PCB
 
-![3D Model of the PCB](../../assets/PCBModel.png)
-
 ## Parts
 
 - [Waveshare 2.9" ePaper Module](https://www.waveshare.com/wiki/2.9inch_e-Paper_Module)
@@ -20,9 +18,9 @@
 
 ![Paper Clock Schematic](../../assets/Schematic.png?raw=true)
 
-## KiCAD Libraries
+## Additional KiCAD Libraries
 
-3rd-party KiCAD libraries (in `lib` folder) obtained from:
+3rd-party KiCAD libraries (in [lib](./lib) folder) obtained from:
 
 - [Adafruit-Eagle-Library.kicad](https://github.com/ryanfobel/Adafruit-Eagle-Library.kicad)
 
